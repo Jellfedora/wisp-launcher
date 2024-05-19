@@ -19,7 +19,7 @@
 body {
   margin: 0;
   padding: 0;
-  cursor: url('../public/cursors/cursor_final.png'), auto;
+  cursor: url('./assets/cursors/cursor_final.png'), auto;
   background-color: #1d1b31;
   color: white;
   padding: 0 !important;
@@ -30,7 +30,7 @@ select:hover,
 input:hover,
 a:hover,
 .cursable:hover {
-  cursor: url('../public/cursors/cursor_outline_white.png'), auto;
+  cursor: url('./assets/cursors/cursor_outline_white.png'), auto;
 }
 
 @font-face {
