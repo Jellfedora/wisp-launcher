@@ -16,7 +16,22 @@
       <SpinnerLoader size="large" />
     </div>
     <div class="modspack-modslist__search">
-      <button class="modspack-modslist__search__btn btn-primary" @click="createModpack" v-if="modslistToDisplay.length">Créer Modpack <small>({{Math.round(totalItems)}})</small></button>
+      <button 
+        class="modspack-modslist__search__btn btn-primary"
+        @click="createModpack"
+        v-if="modslistToDisplay.length"
+      >
+        Créer Modpack <small>({{Math.round(totalItems)}})</small>
+      </button>
+      <button 
+        class="modspack-modslist__search__btn btn-primary"
+        @click="LaunchGameWithMods()"
+        v-if="modslistToDisplay.length"
+      >
+        <span v-if="!modpackStore.getSpinnerLoadingLaunchAdminMods()">Lancer le jeu avec ces mods</span>
+        <SpinnerLoader v-else size="small" />
+        
+      </button>
       <div style="width: 35em;">
         <vue-awesome-paginate
           v-if="totalItemsToDisplay >= 1"
@@ -41,22 +56,15 @@
 </template>
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-// @ts-ignore
 import { gsap } from 'gsap'
 import 'boxicons/css/boxicons.min.css';
-// @ts-ignore
 import Modal from '@/components/Modal.vue'
 import { toast } from 'vue3-toastify'
 import ModsCard from './ModsCard.vue';
-// @ts-ignore
 import SpinnerLoader from '@/components/SpinnerLoader.vue'
-// @ts-ignore
 import { useAuthStore } from '@/stores/authStore.js'
-// @ts-ignore
 import {router} from '@/router'
-// @ts-ignore
 import { getToVApi } from '@/services/axiosService';
-// @ts-ignore
 import { useModpackStore } from '@/stores/modpackStore.js'
 
 const modpackStore = useModpackStore()
@@ -130,6 +138,18 @@ async function createModpack() {
       toast.error('Une erreur est survenue lors de la création du modpack')
       // TODO envoyer un message d'erreur au discord V Launcher
     }
+  }
+}
+
+// Lancer le jeu avec les mods
+async function LaunchGameWithMods() {
+  // On récupére tous les mods de la guilde
+  const mods = await getToVApi ('v_guilds_modslist/all_mods')
+  if (mods && mods.success && mods.data.data && mods.data.data.length > 0) {
+    modpackStore.launchGameWithGuildMods(mods.data.data)
+  } else {
+    toast.error('Une erreur est survenue lors de la récupération des mods de la guilde')
+    // TODO envoyer un message d'erreur au discord V Launcher
   }
 }
 

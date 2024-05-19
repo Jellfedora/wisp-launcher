@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ipcRenderer } from 'electron'
 import { toast } from 'vue3-toastify'
+import { useAppStore } from '@/stores/appStore.js'
 import { useAuthStore } from '@/stores/authStore.js'
 
 export const useModpackStore = defineStore('modpack', {
@@ -17,7 +18,10 @@ export const useModpackStore = defineStore('modpack', {
     spinnerLoadingRemoteVersion: false,
     progressDownloadPercent: null,
     spinnerLoadingDownloadVersion: false,
-    spinnerLoadingSendLog: false
+    spinnerLoadingSendLog: false,
+
+    // Variables de lancement du jeu
+    spinnerLoadingLaunchAdminMods: false
   }),
 
   getters: {
@@ -38,7 +42,10 @@ export const useModpackStore = defineStore('modpack', {
     },
     getSpinnerLoadingSendLog: (state) => () => {
       return state.spinnerLoadingSendLog
-    }
+    },
+    getSpinnerLoadingLaunchAdminMods: (state) => () => {
+      return state.spinnerLoadingLaunchAdminMods
+    },
   },
 
   actions: {
@@ -119,6 +126,34 @@ export const useModpackStore = defineStore('modpack', {
         this.spinnerLoadingDownloadVersion = false
       })
       this.progressDownloadPercent = null
+    },
+
+    // Met à jour les mods de l'administrateur et lance le jeu avec les mods de la guilde
+    async launchGameWithGuildMods (modsList) {
+      this.spinnerLoadingLaunchAdminMods = true
+      const authStore = useAuthStore()
+      const userToken = await authStore.getUserToken()
+
+      const jsonFile = {
+        mods: modsList,
+        guild_id: await authStore.getGuildId()
+      }
+      const guildIdWithTest = jsonFile.guild_id + '-test'
+      const appStore = useAppStore()
+      const steamFolderPath = await appStore.getSteamFolderPath()
+      ipcRenderer.send('launch-game-with-guild-mods', userToken, jsonFile)
+
+      ipcRenderer.once('launch-game-with-guild-mods', (_event, result) => {
+        if (result.success) {
+          this.localGuildModpackVersion = this.remoteGuildModpackVersion
+          toast.success("Téléchargement des mods terminé, le jeu va se lancer")
+          ipcRenderer.send('start-steam-game', steamFolderPath, guildIdWithTest)
+        } else {
+          console.error('Erreur lors de la récupération de l\'archive: ', result.message)
+          toast.error("Une erreur est arrivée lors de la récupération du modpack, veuillez reesayez de mettre à jour")
+        }
+        this.spinnerLoadingLaunchAdminMods = false
+      })
     },
 
     // Envoi les logs du jeu sur le discord de la guilde TODO à refaire

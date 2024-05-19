@@ -6,10 +6,11 @@ const { getSteamPath } = require('steam-game-path') // Permet de récupérer le 
 
 export function startGame () {
   // Fonction pour démarrer le jeu avec BepInEx depuis un dossier spécifié
-  ipcMain.on('start-steam-game', async (event, pathExeSteamFolder, guildId) => {
+  ipcMain.on('start-steam-game', async (event, pathExeSteamFolder, profile) => {
+    console.log('Démarrage du jeu avec BepInEx depuis le dossier :', pathExeSteamFolder, 'pour le profil :', profile)
     const steamAppID = '892970' // AppId de Valheim
 
-    const profileFolderPath = path.join(app.getPath('userData'), '/profiles', guildId)
+    const profileFolderPath = path.join(app.getPath('userData'), '/profiles', profile)
     const bepinexPreloaderPath = path.join(profileFolderPath, 'BepInEx/core/BepInEx.Preloader.dll')
 
     const steamExePath = path.join(pathExeSteamFolder, 'steam.exe')

@@ -1,13 +1,13 @@
-import { compareLocalAndRemoteModpack } from './profiles/getLocalCurrentVersion';
-import { openProfileFolder, deleteProfileFolder } from './profiles/manageProfileFolder';
-import { startGame, getSteamExePath, setSteamPath, detectGameStatus } from './manageGame';
-import { sendAppLogs, contactSupport } from './logs';
-import { authDiscordOauth } from './discordApi';
-import { updateModsPack } from './profiles/manageProfileMods';
-import { getLauncherVersion } from './manageLauncher';
+import { compareLocalAndRemoteModpack } from './profiles/getLocalCurrentVersion'
+import { openProfileFolder, deleteProfileFolder } from './profiles/manageProfileFolder'
+import { startGame, getSteamExePath, setSteamPath, detectGameStatus } from './manageGame'
+import { sendAppLogs, contactSupport } from './logs'
+import { authDiscordOauth } from './discordApi'
+import { updateModsPack, launchGameWithGuildMods } from './profiles/manageProfileMods'
+import { getLauncherVersion } from './manageLauncher'
 
 // Mes fonctions
-export function loadEvents() {
+export function loadEvents () {
   // Comparaison de la version locale et distante du modpack d'un profil
   compareLocalAndRemoteModpack()
 
@@ -30,6 +30,7 @@ export function loadEvents() {
 
   // Mise à jour du modpack d'un profil
   updateModsPack()
+  launchGameWithGuildMods()
 
   // Gestion du launcher
   getLauncherVersion()

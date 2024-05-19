@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import { extractZipArchive } from '../../utils/extract'
 const log = require('electron-log')
+import { startGame, getSteamExePath } from '../manageGame'
 
 /** Télécharge la version demandée aprés avoir nettoyé les anciens fichiers Bepinex et le fichier de version du modpack
  * @param {string} userBearerToken - Token d'authentification de l'utilisateur
@@ -124,6 +125,129 @@ export function updateModsPack () {
       // console.error('Erreur lors de la mise à jour de la version :', error);
       // Envoyer un message à la fenêtre principale pour signaler une erreur
       event.reply('update-version-error', { message: 'Une erreur est survenue lors de la mise à jour de la version.' })
+    }
+  })
+}
+
+/** Met à jour les mods de l'administrateur et lance le jeu avec les mods de la guilde
+ * @param {string} userBearerToken - Token d'authentification de l'utilisateur
+ * @param {object} jsonFile - Fichier json contenant: guild_id et mods
+ * @param {string} valheimFolderPath - Chemin du dossier du jeu Valheim
+ **/
+export function launchGameWithGuildMods () {
+  ipcMain.on('launch-game-with-guild-mods', async (event, userBearerToken, jsonFile) => {
+    try {
+      // Si le dossier du profile n'existe pas on le crée
+      const profileFolderPath = path.join(app.getPath('userData'), '/profiles', jsonFile.guild_id + '-test')
+
+      if (!fs.existsSync(profileFolderPath)) {
+        fs.mkdirSync(profileFolderPath, { recursive: true })
+      }
+
+      // Liste des chemins vers les éléments à supprimer
+      const pathsToDelete = [
+        path.join(profileFolderPath, 'BepInEx'),
+        path.join(profileFolderPath, 'BepInEx.zip'),
+        path.join(profileFolderPath, 'BepInExPack_Valheim'),
+        path.join(profileFolderPath, 'README.md'),
+        path.join(profileFolderPath, 'icon.png'),
+        path.join(profileFolderPath, 'manifest.json'),
+        path.join(profileFolderPath, 'CHANGELOG.md'),
+        path.join(profileFolderPath, 'doorstop_libs'),
+        path.join(profileFolderPath, 'changelog.txt'),
+        path.join(profileFolderPath, 'doorstop_config.ini'),
+        path.join(profileFolderPath, 'start_game_bepinex.sh'),
+        path.join(profileFolderPath, 'start_server_bepinex.sh'),
+        path.join(profileFolderPath, 'winhttp.dll'),
+        path.join(profileFolderPath, 'wisp-launcher-modpack.json'),
+        path.join(profileFolderPath, 'version.json'),
+      ]
+
+      // Suppression des fichiers et dossiers de manière asynchrone
+      event.reply('launch-game-with-guild-mods-progress', { message: 'Suppression des anciens fichiers et dossiers Bepinex' })
+      async function deleteFilesAndFolders () {
+        for (const pathToDelete of pathsToDelete) {
+          try {
+            if (fs.existsSync(pathToDelete)) {
+              if (fs.statSync(pathToDelete).isDirectory()) {
+                await fs.promises.rm(pathToDelete, { recursive: true })
+              } else {
+                await fs.promises.unlink(pathToDelete)
+              }
+            }
+          } catch (error) {
+            console.error(`Erreur lors de la suppression de ${pathToDelete} : ${error.message}`)
+          }
+        }
+      }
+
+      // On attend que la suppression des fichiers et dossiers soit terminée
+      await deleteFilesAndFolders()
+
+      event.reply('launch-game-with-guild-mods-progress', { message: 'Ecriture de la nouvelle version du modpack' })
+      // On écrit le contenu jsonFile dans le fichier wish-launcher-modpack.json
+      const newVersionFilePath = path.join(profileFolderPath, 'wisp-launcher-modpack.json')
+
+      fs.writeFileSync(newVersionFilePath, JSON.stringify(jsonFile, null, 2))
+      // On va télécharger le fichier zip du bepinex et l'extraire dans le dossier du jeu
+      // On recherche dans jsonFile.mods le mod ayant le nom BepInExPack_Valheim
+      const bepinexMod = jsonFile.mods.find((mod) => mod.name === 'BepInExPack_Valheim')
+      if (!bepinexMod) {
+        event.reply('launch-game-with-guild-mods-error', { message: 'Le mod BepInExPack_Valheim n\'a pas été trouvé dans la nouvelle version du modpack, veuillez vérifier qu\'il a bien été ajouté.' })
+        return
+      }
+
+      // On récupére le full_name du mod BepInExPack_Valheim
+      const bepinexModFullName = bepinexMod.full_name
+      const getBepinexArchive = await axios({
+        method: 'get',
+        url: (import.meta.env.VITE_API_URL + 'v_guilds_modpack/download_archive/' + bepinexModFullName + '.zip'),
+        headers: {
+          'Authorization': `Bearer ${userBearerToken}`
+        },
+        responseType: 'arraybuffer'
+      })
+
+      // Écriture du fichier téléchargé
+      event.reply('launch-game-with-guild-mods-progress', { message: 'Ecriture de l\'archive BepInEx' })
+      const tempBepinexArchivePath = path.join(profileFolderPath, 'BepInEx.zip')
+      await fs.promises.writeFile(tempBepinexArchivePath, Buffer.from(getBepinexArchive.data), 'binary')
+
+      // Extraction de l'archive BepInEx.zip
+      event.reply('launch-game-with-guild-mods-progress', { message: 'Extraction de l\'archive BepInEx' })
+      const extractBep = await extractZipArchive(tempBepinexArchivePath, profileFolderPath)
+      if (extractBep.success) {
+        // Suppression de l'archive BepInEx.zip
+        fs.unlinkSync(tempBepinexArchivePath)
+
+        // Dans le dossier obtenu qui se nomme BepInEx, on a un dossier nommé BepInExPack_Valheim
+        const bepinexPackValheimPath = path.join(profileFolderPath, 'BepInExPack_Valheim')
+        // On déplace tous le contenu de BepInExPack_Valheim dans le dossier du jeu
+        fs.readdirSync(bepinexPackValheimPath).forEach((file) => {
+          fs.renameSync(path.join(bepinexPackValheimPath, file), path.join(profileFolderPath, file))
+        })
+        // On supprime juste le dossier wish-download-temp et le dossier BepInExPack_Valheim
+        fs.rmdirSync(bepinexPackValheimPath, { recursive: true })
+
+        // Téléchargement et extraction des autres mods
+        const otherMods = jsonFile.mods.filter((mod) => mod.name !== 'BepInExPack_Valheim')
+        for (const mod of otherMods) {
+          const downMod = await downloadAndExtractArchive(mod, userBearerToken, profileFolderPath, event)
+          if (downMod && !downMod.success) {
+            console.error('Erreur lors du téléchargement et de l\'extraction de l\'archive ' + mod.name)
+            event.reply('launch-game-with-guild-mods-error', { message: 'Une erreur est survenue lors du téléchargement et de l\'extraction de l\'archive ' + mod.name })
+            return
+          }
+
+        }
+      }
+      // Envoyer un message pour indiquer que le téléchargement est terminé
+      event.reply('launch-game-with-guild-mods', { success: true })
+
+    } catch (error) {
+      // console.error('Erreur lors de la mise à jour de la version :', error);
+      // Envoyer un message à la fenêtre principale pour signaler une erreur
+      event.reply('launch-game-with-guild-mods-error', { message: 'Une erreur est survenue lors de la mise à jour de la version.' })
     }
   })
 }
