@@ -8,12 +8,12 @@
    </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { defineProps } from 'vue'
 
-const props = defineProps<{
-  remoteLauncherVersion: string
-}>()
+const props = defineProps({
+  remoteLauncherVersion: String
+})
 
 const downloadLauncher = () => {
   const shell = require('electron').shell;

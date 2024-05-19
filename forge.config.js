@@ -11,8 +11,8 @@ module.exports = {
     {
       name: '@electron-forge/maker-squirrel',
       config: {
-        loadingGif: "public/install-gif.gif",
-        setupIcon: "public/favicon.ico"
+        loadingGif: "./public/install-gif.gif",
+        setupIcon: "./public/favicon.ico"
       }
     },
     {
@@ -27,19 +27,6 @@ module.exports = {
       name: '@electron-forge/maker-rpm',
       config: {},
     },
-  ],
-  publishers: [
-    {
-      name: '@electron-forge/publisher-github',
-      config: {
-        repository: {
-          owner: 'Jellfedora',
-          name: 'wisp-launcher',
-        },
-        authToken: process.env.GITHUB_TOKEN,
-        prerelease: true
-      }
-    }
   ],
   plugins: [
     {

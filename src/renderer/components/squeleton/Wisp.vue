@@ -81,7 +81,7 @@ watch(
   background-color: #25d3e4;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 2000;
+  z-index: 10001;
   transition: transform 0.2s ease-out; /* Transition douce pour le mouvement */
   box-shadow: 0 0 20px 10px #25d3e4;
 }

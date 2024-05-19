@@ -1,14 +1,14 @@
 <template>
   <Suspense>
-    <LoaderScreen @loaderFinished="showLoader = false"/>
+    <LoaderScreen @loaderFinished="showApp = true"/>
   </Suspense>
-  <DiscordAuth />
-  <DetectGameStatus />
+  <DiscordAuth v-if="showApp"/>
+  <DetectGameStatus v-if="showApp"/>
   
-  <Sidebar />
+  <Sidebar v-if="showApp"/>
   <Wisp />
   <ParticlesEffects />
-  <div class="app" v-if="!showLoader">
+  <div class="app" v-if="showApp">
     <MainRouter/>
   </div>
 </template>
@@ -29,7 +29,7 @@ import {router} from '@/router'
 import { toast } from 'vue3-toastify';
 
 const appStore = useAppStore()
-const showLoader = ref(true)
+const showApp = ref(false)
 
 onMounted(() => {
   router.push('/home')

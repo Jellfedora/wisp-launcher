@@ -7,7 +7,7 @@
 .circle-container {
   $particleNum: 200;
   $particleColor: hsl(180, 100%, 80%);
-
+  z-index: 10001;
   position: fixed;
   transform: translateY(-10vh);
   animation-iteration-count: infinite;

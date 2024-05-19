@@ -3,7 +3,8 @@
     <img :src="DiscordIcon" alt="Discord Icon" ref="discordSpin" />
   </div>
 </template>
-<script setup lang="ts">
+<script setup>
+// @ts-ignore
 import DiscordIcon from '@/assets/images/discord-icon.png'
 import { ref, onMounted } from 'vue'
 import gsap from 'gsap'
