@@ -1,20 +1,18 @@
 <template>
   <div class="mod" :style="{background: (props.mod.is_deprecated ? 'linear-gradient(0deg, rgba(40,44,52,1) 0%, rgba(250, 3, 3, 0.705) 100%)' : '')}">
-    <a class="mod__details" v-if="props.mod.package_url" :href="props.mod.package_url" title="Voir sur thunderstore">
-      <i class='bx bx-info-circle bx-sm'></i>
-    </a>
     <img v-if="props.mod.icon":src="props.mod.icon" alt="mod.name" />
     <div class="mod__img-placeholder" v-else />
     <div class="mod__deprecated" v-if="props.mod.is_deprecated">Mod déprécié !</div>
     <h3>{{ props.mod.name }}</h3>
-    <small> v{{ props.mod.version_number }} par {{ props.mod.owner }}</small>
+    <small> Par {{ props.mod.owner }}</small>
     <!-- <ul v-for="categories in mod.categories">
       <span>{{ categories }}</span>
     </ul> -->
     <small>Ajouté le {{dayjs(props.mod.date_created).format('DD/MM/YYYY')}}</small>
     <!-- <p>{{ mod.description }}</p> -->
     <div class="mod__footer">
-      <button class="btn-primary">Choisir version TODO</button>
+      <button class="btn-primary" @click="shell.openExternal(props.mod.package_url)">Voir sur Thunderstore</button>
+      <button class="btn-primary">TODO - Version {{ props.mod.version_number }}</button>
       <button class="btn-primary" @click="addOrRemoveToModspack(props.mod)">
         <span v-if="!loading">{{props.mod.isAdded || props.mod.id ? 'Supprimer' : 'Ajouter'}}</span>
         <div v-else>
@@ -49,6 +47,7 @@ import Modal from '@/components/Modal.vue'
 import { defineProps, ref } from 'vue'
 import { postToVApi, deleteToVApi } from '@/services/axiosService';
 import { toast } from 'vue3-toastify'
+import { shell } from 'electron'
 
 const props = defineProps({
   mod : {
@@ -198,6 +197,7 @@ async function confirmDeleteAllMods(mod) {
     margin: 0.5em;
     white-space: nowrap; /* Empêche le texte de passer à la ligne */
     text-overflow: ellipsis;
+    overflow: hidden;
   }
   &__footer {
     display: flex;
