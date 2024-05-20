@@ -1,5 +1,5 @@
 import { compareLocalAndRemoteModpack } from './profiles/getLocalCurrentVersion'
-import { openProfileFolder, deleteProfileFolder } from './profiles/manageProfileFolder'
+import { openConfFolder, deleteProfileFolder } from './profiles/manageProfileFolder'
 import { startGame, getSteamExePath, setSteamPath, detectGameStatus } from './manageGame'
 import { sendAppLogs, contactSupport } from './logs'
 import { authDiscordOauth } from './discordApi'
@@ -17,8 +17,8 @@ export function loadEvents () {
   startGame()
   detectGameStatus()
 
-  // L'utilisateur ouvre ou supprime le dossier du jeu
-  openProfileFolder()
+  // Gestion des profils
+  openConfFolder()
   deleteProfileFolder()
 
   // Gestion des logs

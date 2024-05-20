@@ -35,14 +35,14 @@ onMounted(() => {
   router.push('/home')
   // Si le chemin du dossier du jeu n'est pas enregistré on tente de le récupérer automatiquement
   if (!appStore.getSteamFolderPath()) {
-   ipcRenderer.send('get-steam-path') 
-   ipcRenderer.once('get-steam-path', (_event, result) => {
-   if (result && result.success) {
-     appStore.setSteamFolderPath(result.steamPath)
-   } else {
-     toast.warn("Le chemin de l\'éxécutable de Steam n'a pu être trouvé automatiquement veuillez le renseigner")
-   }
-  });
+    ipcRenderer.send('get-steam-path') 
+    ipcRenderer.once('get-steam-path', (_event, result) => {
+      if (result && result.success) {
+        appStore.setSteamFolderPath(result.steamPath)
+      } else {
+        toast.warn("Le chemin de l\'éxécutable de Steam n'a pu être trouvé automatiquement veuillez le renseigner")
+      }
+    });
   }
 })
 </script>

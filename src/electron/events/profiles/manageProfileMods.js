@@ -2,9 +2,8 @@ import { ipcMain, app } from 'electron'
 import axios from 'axios'
 import fs from 'fs'
 import path from 'path'
-import { extractZipArchive } from '../../utils/extract'
+import { extractZipArchive, copyDirectoryRecursive } from '../../utils/extract'
 const log = require('electron-log')
-import { startGame, getSteamExePath } from '../manageGame'
 
 /** Télécharge la version demandée aprés avoir nettoyé les anciens fichiers Bepinex et le fichier de version du modpack
  * @param {string} userBearerToken - Token d'authentification de l'utilisateur
@@ -144,6 +143,13 @@ export function launchGameWithGuildMods () {
         fs.mkdirSync(profileFolderPath, { recursive: true })
       }
 
+      // Si le dossier BepInEx/config existe on en fait une copie dans le dossier du jeu nommée save-config
+      const configFolderPath = path.join(profileFolderPath, 'BepInEx/config')
+      if (fs.existsSync(configFolderPath)) {
+        const saveConfigFolderPath = path.join(profileFolderPath, 'save-config')
+        await copyDirectoryRecursive(configFolderPath, saveConfigFolderPath)
+      }
+
       // TODO D'abord on vérifie si le bepinex a changé en lisant 'wisp-launcher-modpack.json', 
       // si il n'a pas changé et que le dossier et sous dossier BepInEx existent on ne fait rien
       // Liste des chemins vers les éléments à supprimer
@@ -248,7 +254,16 @@ export function launchGameWithGuildMods () {
         }
         // TODO on supprime si le mod ne fait pas partie de la liste
 
-        // TODO on remplace les configs des mods par celles de la guilde
+        // On copie le contenu du dossier save-config dans le dossier BepInEx/config
+        const saveConfigFolderPath = path.join(profileFolderPath, 'save-config')
+        if (fs.existsSync(saveConfigFolderPath)) {
+          const configFolderPath = path.join(profileFolderPath, 'BepInEx/config')
+          const copyConf = await copyDirectoryRecursive(saveConfigFolderPath, configFolderPath)
+          if (copyConf && !copyConf.success) {
+            // On supprime le dossier save-config
+            fs.rmdirSync(saveConfigFolderPath, { recursive: true })
+          }
+        }
         // TODO faire pareil pour les profiles classiques
       }
       // Envoyer un message pour indiquer que le téléchargement est terminé

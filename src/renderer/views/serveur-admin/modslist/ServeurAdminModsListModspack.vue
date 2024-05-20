@@ -28,8 +28,15 @@
         @click="LaunchGameWithMods()"
         v-if="modslistToDisplay.length"
       >
-        <span v-if="!modpackStore.getSpinnerLoadingLaunchAdminMods()">Lancer le jeu avec ces mods</span>
+        <span v-if="!modpackStore.getSpinnerLoadingLaunchAdminMods()">Lancer le jeu</span>
         <SpinnerLoader v-else size="small" />
+        
+      </button>
+      <button 
+        class="modspack-modslist__search__btn btn-primary"
+        @click="openTestConfFolder()"
+      >
+        <span>Modifier les fichiers de configurations des mods</span>
         
       </button>
       <div style="width: 35em;">
@@ -66,7 +73,7 @@ import { useAuthStore } from '@/stores/authStore.js'
 import {router} from '@/router'
 import { getToVApi } from '@/services/axiosService';
 import { useModpackStore } from '@/stores/modpackStore.js'
-
+import { ipcRenderer } from 'electron'
 const modpackStore = useModpackStore()
 
 const modslist = ref<any[]>([]) // Liste des mods du modpack de la guilde
@@ -151,6 +158,18 @@ async function LaunchGameWithMods() {
     toast.error('Une erreur est survenue lors de la récupération des mods de la guilde')
     // TODO envoyer un message d'erreur au discord V Launcher
   }
+}
+
+// Ouvrir le dossier de configuration des mods
+function openTestConfFolder() {
+  ipcRenderer.send('open-conf-folder', useAuthStore().getGuildId() + '-test')
+    ipcRenderer.once('open-conf-folder', (_event, result) => {
+      if (result && result.success) {
+        toast.success("Votre dossier de configuration a bien été ouvert")
+      } else {
+        toast.warn("Votre dossier de configuration n'a pas encore été créé, veuillez d'abord lancer le jeu")
+      }
+    });
 }
 
 function onClickHandler(page: number) {

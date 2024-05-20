@@ -1,8 +1,11 @@
 <template>
   <div class="mod" :style="{background: (props.mod.is_deprecated ? 'linear-gradient(0deg, rgba(40,44,52,1) 0%, rgba(250, 3, 3, 0.705) 100%)' : '')}">
-    <div class="mod__deprecated" v-if="props.mod.is_deprecated">Mod déprécié !</div>
+    <a class="mod__details" v-if="props.mod.package_url" :href="props.mod.package_url" title="Voir sur thunderstore">
+      <i class='bx bx-info-circle bx-sm'></i>
+    </a>
     <img v-if="props.mod.icon":src="props.mod.icon" alt="mod.name" />
     <div class="mod__img-placeholder" v-else />
+    <div class="mod__deprecated" v-if="props.mod.is_deprecated">Mod déprécié !</div>
     <h3>{{ props.mod.name }}</h3>
     <small> v{{ props.mod.version_number }} par {{ props.mod.owner }}</small>
     <!-- <ul v-for="categories in mod.categories">
@@ -11,8 +14,8 @@
     <small>Ajouté le {{dayjs(props.mod.date_created).format('DD/MM/YYYY')}}</small>
     <!-- <p>{{ mod.description }}</p> -->
     <div class="mod__footer">
-      <button style="width:7em;" @click="openLink(props.mod.package_url)" v-if="props.mod.package_url">Détails</button>
-      <button style="width:7em;" @click="addOrRemoveToModspack(props.mod)">
+      <button class="btn-primary">Choisir version TODO</button>
+      <button class="btn-primary" @click="addOrRemoveToModspack(props.mod)">
         <span v-if="!loading">{{props.mod.isAdded || props.mod.id ? 'Supprimer' : 'Ajouter'}}</span>
         <div v-else>
           <SpinnerLoader size="small" />
@@ -39,15 +42,11 @@
     </div>
   </Modal>
 </template>
-<script setup lang="ts">
+<script setup>
 import dayjs from 'dayjs'
-// @ts-ignore
 import SpinnerLoader from '@/components/SpinnerLoader.vue'
-// @ts-ignore
 import Modal from '@/components/Modal.vue'
 import { defineProps, ref } from 'vue'
-import { shell } from 'electron';
-// @ts-ignore
 import { postToVApi, deleteToVApi } from '@/services/axiosService';
 import { toast } from 'vue3-toastify'
 
@@ -62,13 +61,10 @@ const emit = defineEmits(['modDeleted'])
 
 const showAddMod = ref(false)
 const showRemoveModal = ref(false)
-const listDependanciesToDelete = ref([] as any[])
+const listDependanciesToDelete = ref()
 const loading = ref(false)
-const openLink = (link: string) => {
-  shell.openExternal(link)
-}
 
-async function addOrRemoveToModspack(mod: any) {
+async function addOrRemoveToModspack(mod) {
   loading.value = true
   if (mod.isAdded || mod.id) {
     await deleteMod(mod)
@@ -80,7 +76,7 @@ async function addOrRemoveToModspack(mod: any) {
 }
 
 // Supprime un mod et ses dépendances du modpack si d'autres mods n'en dépendent pas sinon affiche une confirmation
-async function deleteMod(mod: any) {
+async function deleteMod(mod) {
   // On demande d'abord au serveur si celui-ci est bien ajouté et si il fait partie des dépendances d'un autre mod
   // Si le mod est désactivable et qu'il ne fait pas partie des dépendances d'un autre mod on le supprime
   const deleteIfCan = await deleteToVApi('v_guilds_modslist/remove_mod/' + mod.uuid4)
@@ -101,7 +97,7 @@ async function deleteMod(mod: any) {
 }
 
 // Ajoute un mod et ses dépendances au modpack
-async function addMod(mod: any) {
+async function addMod(mod) {
     showAddMod.value = true
   const addMod = await postToVApi('v_guilds_modslist/add_mod/' + mod.uuid4 + '/' + mod.version_number)
     if (addMod.data && addMod.data.success) {
@@ -115,7 +111,7 @@ async function addMod(mod: any) {
 }
 
 // Confirme la suppression d'un mod sans suppression des mods qui en dépendent
-async function confirmDeleteMod(mod: any) {
+async function confirmDeleteMod(mod) {
   // On supprime le mod et on ferme la modal
   const deleteMod = await deleteToVApi('v_guilds_modslist/confirm_remove_mod/' + mod.uuid4)
   if (deleteMod.success) {
@@ -131,7 +127,7 @@ async function confirmDeleteMod(mod: any) {
 }
 
 // Confirme la suppression d'un mod et des mods qui en dépendent
-async function confirmDeleteAllMods(mod: any) {
+async function confirmDeleteAllMods(mod) {
   console.log(listDependanciesToDelete.value)
   // On fais un tableau de tous les uuid4 des mods à supprimer
   const dependanciesUuid4 = listDependanciesToDelete.value.map((mod) => mod.uuid4)
@@ -156,7 +152,7 @@ async function confirmDeleteAllMods(mod: any) {
 .mod {
   border-radius: 1em;
   width: 20em;
-  height: 22em;
+  height: 25em;
   margin: 1em;
   padding: 0.5em 1em 1em 1em;
   background: linear-gradient(0deg, rgba(40,44,52,1) 0%, rgba(17, 0, 32, 0.705) 100%);
@@ -169,6 +165,16 @@ async function confirmDeleteAllMods(mod: any) {
     border: 1px solid #ffffff44;
     box-shadow: 0 7px 50px 10px #000000aa;
     transform: scale(1.015);
+  }
+  &__details {
+    position: relative;
+    top: 0;
+    left: -8em;
+    color: white;
+    text-decoration: none;
+    &:hover {
+      color: #5865F2;
+    }
   }
   &__deprecated {
     color: black;
@@ -184,26 +190,27 @@ async function confirmDeleteAllMods(mod: any) {
   &__img-placeholder {
     width: 10em;
     height: 10em;
-    background-color: #ffffff44;
+    background-color: transparent;
     margin: 0 auto;
   }
   & h3 {
     font-size: 1.1em;
-    margin-top: 0.5em;
+    margin: 0.5em;
     white-space: nowrap; /* Empêche le texte de passer à la ligne */
-    overflow: hidden;
     text-overflow: ellipsis;
   }
   &__footer {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: center;
     margin-top: 1em;
     & button {
-      background-color: white;
-      color: #1d1b31;
       border: none;
       border-radius: 0.5em;
-      width: 7em;
+      width: 100%;
+      font-size: 0.7em;
+      border: 1px solid #ffffff44;
+      margin: 0.5em;
       height: 2.5em;
       display: flex;
       justify-content: center;
