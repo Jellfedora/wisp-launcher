@@ -109,19 +109,24 @@ async function addMod(mod) {
     }
 }
 
-// Confirme la suppression d'un mod sans suppression des mods qui en dépendent
 async function confirmDeleteMod(mod) {
-  // On supprime le mod et on ferme la modal
-  const deleteMod = await deleteToVApi('v_guilds_modslist/confirm_remove_mod/' + mod.uuid4)
-  if (deleteMod.success) {
-    toast.success('Le mod ' + mod.name + ' a bien été supprimé du modpack')
-    mod.isAdded = false
-    mod.id = null
-    // TODO supprimer les mods de l'interface de la page online
-    emit('modDeleted', mod)
-    showRemoveModal.value = false
-  } else {
-    toast.error('Une erreur est survenue lors de la suppression du mod ' + mod.name + '. Veuillez réessayer')
+  try {
+    // Suppression du mod via l'API et fermeture de la modal
+    const { success } = await deleteToVApi('v_guilds_modslist/confirm_remove_mod/' + mod.uuid4);
+    
+    if (success) {
+      toast.success(`Le mod ${mod.name} a bien été supprimé du modpack`);
+      mod.isAdded = false;
+      mod.id = null;
+      // TODO: Supprimer les mods de l'interface de la page online
+      emit('modDeleted', mod);
+      showRemoveModal.value = false;
+    } else {
+      toast.error(`Une erreur est survenue lors de la suppression du mod ${mod.name}. Veuillez réessayer`);
+    }
+  } catch (error) {
+    // Gestion des erreurs réseau ou autres exceptions
+    console.error(`Une erreur est survenue : ${error.message}`);
   }
 }
 
