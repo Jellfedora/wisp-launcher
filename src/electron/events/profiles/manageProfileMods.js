@@ -53,7 +53,7 @@ export function updateModsPack () {
               }
             }
           } catch (error) {
-            console.error(`Erreur lors de la suppression de ${pathToDelete} : ${error.message}`)
+            log.error(`Erreur lors de la suppression de ${pathToDelete} : ${error.message}`)
           }
         }
       }
@@ -111,7 +111,7 @@ export function updateModsPack () {
         for (const mod of otherMods) {
           const downMod = await downloadAndExtractArchive(mod, userBearerToken, profileFolderPath, event)
           if (downMod && !downMod.success) {
-            console.error('Erreur lors du téléchargement et de l\'extraction de l\'archive ' + mod.name)
+            log.error('Erreur lors du téléchargement et de l\'extraction de l\'archive ' + mod.name)
             event.reply('update-version-error', { message: 'Une erreur est survenue lors du téléchargement et de l\'extraction de l\'archive ' + mod.name })
             return
           }
@@ -122,7 +122,7 @@ export function updateModsPack () {
       event.reply('update-version', { success: true })
 
     } catch (error) {
-      // console.error('Erreur lors de la mise à jour de la version :', error);
+      log.error('Erreur lors de la mise à jour de la version :', error)
       // Envoyer un message à la fenêtre principale pour signaler une erreur
       event.reply('update-version-error', { message: 'Une erreur est survenue lors de la mise à jour de la version.' })
     }
@@ -144,6 +144,8 @@ export function launchGameWithGuildMods () {
         fs.mkdirSync(profileFolderPath, { recursive: true })
       }
 
+      // TODO D'abord on vérifie si le bepinex a changé en lisant 'wisp-launcher-modpack.json', 
+      // si il n'a pas changé et que le dossier et sous dossier BepInEx existent on ne fait rien
       // Liste des chemins vers les éléments à supprimer
       const pathsToDelete = [
         path.join(profileFolderPath, 'BepInEx'),
@@ -164,6 +166,7 @@ export function launchGameWithGuildMods () {
       ]
 
       // Suppression des fichiers et dossiers de manière asynchrone
+      // TODO On ne supprime que si le bepinex a changé 
       event.reply('launch-game-with-guild-mods-progress', { message: 'Suppression des anciens fichiers et dossiers Bepinex' })
       async function deleteFilesAndFolders () {
         for (const pathToDelete of pathsToDelete) {
@@ -176,7 +179,7 @@ export function launchGameWithGuildMods () {
               }
             }
           } catch (error) {
-            console.error(`Erreur lors de la suppression de ${pathToDelete} : ${error.message}`)
+            log.error(`Erreur lors de la suppression de ${pathToDelete} : ${error.message}`)
           }
         }
       }
@@ -189,6 +192,8 @@ export function launchGameWithGuildMods () {
       const newVersionFilePath = path.join(profileFolderPath, 'wisp-launcher-modpack.json')
 
       fs.writeFileSync(newVersionFilePath, JSON.stringify(jsonFile, null, 2))
+
+      // TODO seulement si bepinex supprimé
       // On va télécharger le fichier zip du bepinex et l'extraire dans le dossier du jeu
       // On recherche dans jsonFile.mods le mod ayant le nom BepInExPack_Valheim
       const bepinexMod = jsonFile.mods.find((mod) => mod.name === 'BepInExPack_Valheim')
@@ -229,23 +234,28 @@ export function launchGameWithGuildMods () {
         // On supprime juste le dossier wish-download-temp et le dossier BepInExPack_Valheim
         fs.rmdirSync(bepinexPackValheimPath, { recursive: true })
 
+        // TODO On ne télécharge que si le mod est manquant
         // Téléchargement et extraction des autres mods
         const otherMods = jsonFile.mods.filter((mod) => mod.name !== 'BepInExPack_Valheim')
         for (const mod of otherMods) {
           const downMod = await downloadAndExtractArchive(mod, userBearerToken, profileFolderPath, event)
           if (downMod && !downMod.success) {
-            console.error('Erreur lors du téléchargement et de l\'extraction de l\'archive ' + mod.name)
+            log.error('Erreur lors du téléchargement et de l\'extraction de l\'archive ' + mod.name)
             event.reply('launch-game-with-guild-mods-error', { message: 'Une erreur est survenue lors du téléchargement et de l\'extraction de l\'archive ' + mod.name })
             return
           }
 
         }
+        // TODO on supprime si le mod ne fait pas partie de la liste
+
+        // TODO on remplace les configs des mods par celles de la guilde
+        // TODO faire pareil pour les profiles classiques
       }
       // Envoyer un message pour indiquer que le téléchargement est terminé
       event.reply('launch-game-with-guild-mods', { success: true })
 
     } catch (error) {
-      // console.error('Erreur lors de la mise à jour de la version :', error);
+      log.error('Erreur lors de la mise à jour de la version d\'un profil test admin :', error)
       // Envoyer un message à la fenêtre principale pour signaler une erreur
       event.reply('launch-game-with-guild-mods-error', { message: 'Une erreur est survenue lors de la mise à jour de la version.' })
     }
