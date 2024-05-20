@@ -19,13 +19,13 @@
 import { ipcRenderer } from 'electron';
 import { ref } from 'vue';
 import { toast } from 'vue3-toastify';
-// @ts-ignore
 import { useAuthStore } from '@/stores/authStore.js'
+import { useModpackStore } from '@/stores/modpackStore.js'
 import DiscordIcon from '@/assets/images/discord-icon.png'
-// @ts-ignore
 import DiscordSpinner from '@/components/DiscordSpinner.vue'
 
 const authStore = useAuthStore()
+const modpackStore = useModpackStore()
 const loader = ref(false)
 
 async function OpenDiscordAuth() {
@@ -36,6 +36,8 @@ async function OpenDiscordAuth() {
       loader.value = false
       authStore.setUserInfo(result.responseData.data.user)
       toast.success("Bonjour " + result.responseData.data.user.user_discord_name + ' !')
+      // On compare la version du modpack local avec la version du modpack distant pour voir si une mise à jour est disponible et si tout est à jour
+      modpackStore.checkLocalAndRemoteModpack();
     } else {
       loader.value = false
       toast.error("Vous n'avez pas pu vous connecter avec Discord, veuillez réessayer.")
