@@ -26,12 +26,12 @@
  * ```
  */
 
-import './renderer/style.css'
+import './style.css'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import App from './renderer/App.vue'
+import App from './App.vue'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
-import router from './renderer/router/index.js'
+import router from './router/index.js'
 import Vue3Toasity from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 import VueAwesomePaginate from "vue-awesome-paginate"

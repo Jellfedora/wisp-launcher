@@ -71,7 +71,7 @@ app.on('window-all-closed', () => {
 // -------------------------------------------------------------------------------------------------------------------------
 
 // Charge les événements personnalisés
-import { loadEvents } from './electron/events/index'
+import { loadEvents } from './events/index'
 loadEvents()
 
 // -------------------------------------------------------------------------------------------------------------------------
