@@ -37,9 +37,8 @@ const createWindow = () => {
     mainWindow.webContents.openDevTools()
   }
 
-
   const appVersion = app.getVersion()
-  console.log('Fedora Launcher', appVersion)
+  console.log('Fedora Launcher v' + appVersion + ' - Environnement: ' + process.env.VITE_ENV)
 }
 
 // This method will be called when Electron has finished
