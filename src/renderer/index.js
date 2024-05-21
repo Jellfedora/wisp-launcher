@@ -32,10 +32,15 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import router from './router/index.js'
+
 import Vue3Toasity from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
+
 import VueAwesomePaginate from "vue-awesome-paginate"
 import "vue-awesome-paginate/dist/style.css"
+
+import FloatingVue from 'floating-vue'
+import 'floating-vue/dist/style.css'
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
@@ -50,4 +55,5 @@ app.use(Vue3Toasity,
   }
 )
 app.use(VueAwesomePaginate)
+app.use(FloatingVue)
 app.mount('#app')

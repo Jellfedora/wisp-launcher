@@ -1,5 +1,6 @@
 <template>
   <div class="modspack-modslist">
+    <SidebarAction />
     <TransitionGroup 
       tag="ul"
       v-if="!loading"
@@ -70,6 +71,7 @@ import { toast } from 'vue3-toastify'
 import ModsCard from './ModsCard.vue';
 import SpinnerLoader from '@/components/SpinnerLoader.vue'
 import { useAuthStore } from '@/stores/authStore.js'
+import SidebarAction from './ServeurAdminSidebarAction.vue'
 import {router} from '@/router'
 import { getToVApi } from '@/services/axiosService';
 import { useModpackStore } from '@/stores/modpackStore.js'
