@@ -25,6 +25,8 @@
     "@types/tar": "^6.1.13",
     "@vitejs/plugin-vue": "^5.0.4",
     "electron": "30.0.6",
+    "eslint": "^9.3.0",
+    "eslint-plugin-vue": "^9.26.0",
     "sass": "^1.77.2",
     "vite": "^5.2.11",
     "vite-plugin-electron-renderer": "^0.14.5"
