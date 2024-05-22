@@ -41,6 +41,10 @@ a:hover,
   font-family: NorseBold;
 }
 
+li {
+  list-style-type: none;
+}
+
 select {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -156,22 +160,27 @@ p {
 }
 
 /* Scrollbars */
-/* width */
+/* Vertical scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 7px;
+  height: 7px;
+  /* Largeur de la barre de défilement */
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
   background: #11101d;
+  /* Couleur de fond de la piste */
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #5865F2;
+  /* Couleur du curseur de défilement */
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #8992f7;
+  /* Couleur du curseur de défilement au survol */
 }

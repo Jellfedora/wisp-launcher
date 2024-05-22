@@ -12,13 +12,27 @@
     <!-- <p>{{ mod.description }}</p> -->
     <div class="mod__footer">
       <button class="btn-primary" @click="shell.openExternal(props.mod.package_url)">Voir sur Thunderstore</button>
-      <button class="btn-primary">TODO - Version {{ props.mod.version_number }}</button>
+      <VTooltip style="width: 100%;">
+        <button class="btn-primary" style="width: 25em;">Version {{ props.mod.version_number }}</button>
+        <template #popper>
+          Le changement de version n'est pas encore pris en charge, veuillez supprimer et re-ajouter le mod pour le mettre à jour
+        </template>
+      </VTooltip>
+
+      <button class="btn-primary" @click="changeRoleOfMod(props.mod)" :style="{backgroundColor: (props.mod.admin_only ? '#5865F2' : '')}">
+        <span v-if="!loadingChangeRole">Admin Only</span>
+        <div v-else>
+          <SpinnerLoader size="small" />
+        </div>
+      </button>
+      
       <button class="btn-primary" @click="addOrRemoveToModspack(props.mod)">
         <span v-if="!loading">{{props.mod.isAdded || props.mod.id ? 'Supprimer' : 'Ajouter'}}</span>
         <div v-else>
           <SpinnerLoader size="small" />
         </div>
       </button>
+
     </div>
   </div>
   <Modal :show="showAddMod">
@@ -45,7 +59,7 @@ import dayjs from 'dayjs'
 import SpinnerLoader from '@/components/SpinnerLoader.vue'
 import Modal from '@/components/Modal.vue'
 import { defineProps, ref } from 'vue'
-import { postToVApi, deleteToVApi } from '@/services/axiosService';
+import { postToVApi, deleteToVApi, putToVApi } from '@/services/axiosService';
 import { toast } from 'vue3-toastify'
 import { shell } from 'electron'
 
@@ -62,6 +76,7 @@ const showAddMod = ref(false)
 const showRemoveModal = ref(false)
 const listDependanciesToDelete = ref()
 const loading = ref(false)
+const loadingChangeRole = ref(false)
 
 async function addOrRemoveToModspack(mod) {
   loading.value = true
@@ -150,13 +165,29 @@ async function confirmDeleteAllMods(mod) {
   }
 }
 
+async function changeRoleOfMod(mod) {
+  loadingChangeRole.value = true
+  const changeRole = await putToVApi('v_guilds_modslist/switch_role/' + mod.uuid4)
+  if (changeRole.data && changeRole.data.success) {
+    mod.admin_only = !mod.admin_only
+    loadingChangeRole.value = false
+    if (mod.admin_only) {
+      toast.success('Le mod ' + mod.name + ' est maintenant réservé aux admins')
+    } else {
+      toast.success('Le mod ' + mod.name + ' est maintenant disponible pour tous')
+    }
+  } else {
+    loadingChangeRole.value = false
+  }
+}
+
 </script>
 
 <style scoped lang="scss">
 .mod {
   border-radius: 1em;
   width: 20em;
-  height: 25em;
+  height: 28em;
   margin: 1em;
   padding: 0.5em 1em 1em 1em;
   background: linear-gradient(0deg, rgba(40,44,52,1) 0%, rgba(17, 0, 32, 0.705) 100%);

@@ -138,7 +138,7 @@ export const useModpackStore = defineStore('modpack', {
         mods: modsList,
         guild_id: await authStore.getGuildId()
       }
-      const guildIdWithTest = jsonFile.guild_id + '-test'
+      const guildIdWithTest = jsonFile.guild_id + '-admin'
       const appStore = useAppStore()
       const steamFolderPath = await appStore.getSteamFolderPath()
       ipcRenderer.send('launch-game-with-guild-mods', userToken, jsonFile)

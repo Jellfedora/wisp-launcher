@@ -130,3 +130,22 @@ export async function deleteToVApi (url, data, config = {}) {
     return response
   }
 }
+
+export async function putToVApi (url, data, config = {}) {
+  const vApiUrl = vApi + url
+  const response = {
+    success: false,
+    data: null
+  }
+  try {
+    const axiosResponse = await axiosInstance.put(vApiUrl, data, config)
+    response.success = true
+    response.data = axiosResponse.data
+    return response
+  } catch (error) {
+    console.error(`Erreur lors de la requête PUT vers ${vApiUrl}: ${error.message}`)
+    // throw new Error(`Erreur lors de la requête PUT vers ${vApiUrl}: ${error.message}`)
+    response.data = error.response.data
+    return response
+  }
+}

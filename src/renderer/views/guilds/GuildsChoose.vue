@@ -15,7 +15,7 @@
         </Slide>
     </Carousel>
     <small style="text-align: center;padding: 0 4em;">Seuls les serveurs auxquels vous êtes connectés avec Discord et qui sont actifs et enregistrés chez nous sont disponibles. <br/> Si vous ne voyez pas votre serveur et que vous en possédez un chez nous, veuillez nous contacter via le formulaire de contact</small>
-    <button class="btn-secondary" @click="router.push('/guilds/add')">Vous voulez ajouter votre propre serveur sur notre launcher ?</button>
+    <button class="btn-secondary" @click="redirectToAddGuild">Vous voulez ajouter votre propre serveur sur notre launcher ?</button>
   </div>
 </template>
 
@@ -30,8 +30,7 @@ import { useAuthStore } from '@/stores/authStore.js'
 import { useModpackStore } from '@/stores/modpackStore.js'
 // @ts-ignore
 import { getToVApi, postToVApi } from '@/services/axiosService';
-// @ts-ignore
-import {router} from '@/router'
+import { router } from '../../router'
 
 const modpackStore = useModpackStore()
 const authStore = useAuthStore()
@@ -39,6 +38,10 @@ const authStore = useAuthStore()
 const token = computed(() => {
   return authStore.getUserToken()
 })
+
+function redirectToAddGuild() {
+  router.push('/guilds/add')
+}
 
 const serveurs = ref<any[]>([])
 

@@ -182,7 +182,7 @@ const isNotFocused = () => {
     width: 100%;
     padding: 0.5em 0.5em;
     border-top: white solid 1px;
-    z-index: 8000;
+    // z-index: 8000;
     height: 3.5em;
     & h2 {
       font-size: 1.1em;
