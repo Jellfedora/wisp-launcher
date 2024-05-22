@@ -44,7 +44,7 @@ onMounted(async() => {
     if (result && result.success) {
       // On enregistre la version du launcher pour l'afficher dans la sidebar
       appStore.setLauncherVersion(result.version)
-      if(latestLauncherVersion && latestLauncherVersion.data && (latestLauncherVersion.data.version !== result.version)) {
+      if(latestLauncherVersion && latestLauncherVersion.data && (latestLauncherVersion.data.version !== 'v' + result.version)) {
         remoteLauncherVersion.value = latestLauncherVersion.data.version
         showUpdateLauncher.value = true
       } else {
