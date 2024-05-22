@@ -137,7 +137,7 @@ export function launchGameWithGuildMods () {
   ipcMain.on('launch-game-with-guild-mods', async (event, userBearerToken, jsonFile) => {
     try {
       // Si le dossier du profile n'existe pas on le crée
-      const profileFolderPath = path.join(app.getPath('userData'), '/profiles', jsonFile.guild_id + '-test')
+      const profileFolderPath = path.join(app.getPath('userData'), '/profiles', jsonFile.guild_id + '-admin')
 
       if (!fs.existsSync(profileFolderPath)) {
         fs.mkdirSync(profileFolderPath, { recursive: true })
