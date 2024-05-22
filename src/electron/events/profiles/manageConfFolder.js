@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import log from 'electron-log'
 import archiver from 'archiver'
+import unzipper from 'unzipper'
 
 // Fonction récursive pour récupérer l'arborescence des fichiers et dossiers
 function readDirectory (directoryPath, parentKey = '') {
@@ -20,7 +21,9 @@ function readDirectory (directoryPath, parentKey = '') {
       label: item,
       data: `${item}${isDirectory ? ' Folder' : ''}`,
       icon: isDirectory ? 'pi pi-fw pi-folder' : 'pi pi-fw pi-file',
-      children: isDirectory ? readDirectory(itemPath, key) : null
+      children: isDirectory ? readDirectory(itemPath, key) : null,
+      checked: false,
+      partialChecked: false
     }
 
     result.push(node)
@@ -60,7 +63,6 @@ function createZipFromSelection (selection, directoryPath, zipFilePath, playersC
       if (node.icon === 'pi pi-fw pi-folder') {
         if (nodeSelection.checked) {
           // Ajoute tout le dossier et ses enfants
-          console.log(`Adding entire directory: ${fullPath}`)
           archive.directory(fullPath, itemPath)
         } else if (nodeSelection.partialChecked) {
           // Traite les enfants individuellement
@@ -70,7 +72,6 @@ function createZipFromSelection (selection, directoryPath, zipFilePath, playersC
         }
       } else if (nodeSelection.checked) {
         // Ajoute le fichier
-        console.log(`Adding file: ${fullPath}`)
         archive.file(fullPath, { name: itemPath })
       }
     }
@@ -87,15 +88,42 @@ function createZipFromSelection (selection, directoryPath, zipFilePath, playersC
 
 export function getProfileConfArbo () {
   // Récupération de l'arborescence des fichiers de configuration
-  ipcMain.on('get-conf-arbo', async (event, profile) => {
-    const profileFolderPath = path.join(app.getPath('userData'), '/profiles', profile, '/BepInEx/config')
+  ipcMain.on('get-conf-arbo', async (event, guildId, type) => {
+    const profileFolderPath = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, '/BepInEx/config')
 
     if (!fs.existsSync(profileFolderPath)) {
       event.reply('get-conf-arbo', { success: false, message: 'Le dossier de configuration n\'existe pas.' })
     } else {
       try {
-        const directoryTree = readDirectory(profileFolderPath)
-        event.reply('get-conf-arbo', { success: true, data: directoryTree })
+        // Vérifie si le fichier ZIP existe
+        const zipFilePathAdmin = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `${guildId}-admins-config.zip`)
+        console.log(zipFilePathAdmin)
+        const zipFilePathPlayers = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `${guildId}-players-config.zip`)
+        let archiveFilesAdmins = []
+        let archiveFilesPlayers = []
+
+        if (fs.existsSync(zipFilePathAdmin)) {
+          // Extrait les chemins des fichiers dans l'archive
+          archiveFilesAdmins = await getArchiveFiles(zipFilePathAdmin)
+        }
+
+        if (fs.existsSync(zipFilePathPlayers)) {
+          // Extrait les chemins des fichiers dans l'archive
+          archiveFilesPlayers = await getArchiveFiles(zipFilePathPlayers)
+        }
+
+        // Lire l'arborescence des fichiers de configuration
+        const directoryTreeAdmins = readDirectory(profileFolderPath)
+
+        const directoryTreePlayers = readDirectory(profileFolderPath)
+
+        // Comparer avec les fichiers dans l'archive
+        markFilesInTree(directoryTreeAdmins, archiveFilesAdmins, '')
+        markFilesInTree(directoryTreePlayers, archiveFilesPlayers, '')
+
+        console.log(directoryTreeAdmins)
+        console.log(directoryTreePlayers)
+        event.reply('get-conf-arbo', { success: true, dataAdmins: directoryTreeAdmins, dataPlayers: directoryTreePlayers })
       } catch (error) {
         log.error(error)
         event.reply('get-conf-arbo', { success: false, message: error.message })
@@ -104,18 +132,21 @@ export function getProfileConfArbo () {
   })
 
   // Création du fichier ZIP de la conf sélectionnée
-  ipcMain.on('create-conf-zip', (event, serializedSelection, profile) => {
-    const selection = JSON.parse(serializedSelection)
-    const profileFolderPath = path.join(app.getPath('userData'), '/profiles', profile, '/BepInEx/config')
-    const zipFilePath = path.join(app.getPath('userData'), '/profiles', profile, `${profile}-config.zip`)
-    console.log(selection)
-    console.log(profileFolderPath)
-    console.log(zipFilePath)
+  ipcMain.on('create-conf-zip', (event, serializedSelectionAdmins, serializedSelectionPlayers, guildId, type) => {
+
+    const profileFolderPath = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, '/BepInEx/config')
+
+    const selectionAdmins = JSON.parse(serializedSelectionAdmins)
+    const zipFilePathAdmins = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `${guildId}-admins-config.zip`)
+
+    const selectionPlayers = JSON.parse(serializedSelectionPlayers)
+    const zipFilePathPlayers = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `${guildId}-players-config.zip`)
 
     try {
       const playersConfFiles = readDirectory(profileFolderPath)
-      createZipFromSelection(selection, profileFolderPath, zipFilePath, playersConfFiles)
-      event.reply('create-conf-zip', { success: true, filePath: zipFilePath })
+      createZipFromSelection(selectionAdmins, profileFolderPath, zipFilePathAdmins, playersConfFiles)
+      createZipFromSelection(selectionPlayers, profileFolderPath, zipFilePathPlayers, playersConfFiles)
+      event.reply('create-conf-zip', { success: true })
     } catch (error) {
       log.error(error)
       event.reply('create-conf-zip', { success: false, message: error.message })
@@ -123,3 +154,29 @@ export function getProfileConfArbo () {
   })
 }
 
+// Fonction pour obtenir la liste des fichiers dans l'archive
+async function getArchiveFiles (zipFilePath) {
+  const directory = await unzipper.Open.file(zipFilePath)
+  const files = directory.files.map(file => file.path)
+  return files
+}
+
+// Fonction pour marquer les fichiers dans l'arborescence en fonction de leur présence dans l'archive
+function markFilesInTree (tree, archiveFiles, parentPath) {
+  tree.forEach(node => {
+    const currentPath = parentPath ? path.join(parentPath, node.label) : node.label
+
+    if (node.children) {
+      markFilesInTree(node.children, archiveFiles, currentPath)
+      const allChildrenChecked = node.children.every(child => child.checked)
+      const someChildrenChecked = node.children.some(child => child.checked || child.partialChecked)
+
+      node.checked = allChildrenChecked && node.children.length > 0
+      node.partialChecked = someChildrenChecked && !allChildrenChecked
+    } else {
+      const fileName = currentPath.replace(/\\/g, '/')
+      node.checked = archiveFiles.includes(fileName)
+      node.partialChecked = false
+    }
+  })
+}

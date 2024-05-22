@@ -4,6 +4,7 @@
       <button 
         class="sidebar-action__buttons btn-secondary" 
         @click="createModpack()"
+        style="background-color: yellow; color: black;border-color: black;"
       >
         <i class="bx bx-cloud-upload bx-sm"></i>
       </button>
@@ -107,7 +108,7 @@ async function LaunchGameWithMods() {
 
 // Ouvrir le dossier de configuration des mods
 function openTestConfFolder() {
-  ipcRenderer.send('open-conf-folder', useAuthStore().getGuildId() + '-test')
+  ipcRenderer.send('open-conf-folder', useAuthStore().getGuildId() + '-admin')
   ipcRenderer.once('open-conf-folder', (_event, result) => {
     if (result && result.success) {
       toast.success("Votre dossier de configuration a bien été ouvert")
