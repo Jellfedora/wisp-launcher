@@ -1,9 +1,10 @@
 import { compareLocalAndRemoteModpack } from './profiles/getLocalCurrentVersion'
 import { openConfFolder, deleteProfileFolder } from './profiles/manageProfileFolder'
+import { getProfileConfArbo } from './profiles/manageConfFolder'
+import { updateModsPack, launchGameWithGuildMods } from './profiles/manageProfileMods'
 import { startGame, getSteamExePath, setSteamPath, detectGameStatus } from './manageGame'
 import { sendAppLogs, contactSupport } from './logs'
 import { authDiscordOauth } from './discordApi'
-import { updateModsPack, launchGameWithGuildMods } from './profiles/manageProfileMods'
 import { getLauncherVersion } from './manageLauncher'
 
 // Mes fonctions
@@ -20,6 +21,7 @@ export function loadEvents () {
   // Gestion des profils
   openConfFolder()
   deleteProfileFolder()
+  getProfileConfArbo()
 
   // Gestion des logs
   sendAppLogs()

@@ -5,8 +5,8 @@ import path from 'path'
 
 export function openConfFolder () {
   // On ouvre le dossier de configuration du profile
-  ipcMain.on('open-conf-folder', async (event, guildId) => {
-    const profileFolderPath = path.join(app.getPath('userData'), '/profiles', guildId, '/BepInEx/config')
+  ipcMain.on('open-conf-folder', async (event, profile) => {
+    const profileFolderPath = path.join(app.getPath('userData'), '/profiles', profile, '/BepInEx/config')
     // On vérifie si le dossier existe
     if (!fs.existsSync(profileFolderPath)) {
       event.reply('open-conf-folder', { success: false, message: 'Le dossier du modpack n\'existe pas.' })

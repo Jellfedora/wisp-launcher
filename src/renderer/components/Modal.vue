@@ -6,7 +6,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { defineProps } from 'vue'
+import { defineProps, onUnmounted } from 'vue'
 const props = defineProps({
     show: {
         type: Boolean,

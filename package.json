@@ -40,6 +40,7 @@
   "dependencies": {
     "@openid/appauth": "^1.3.2",
     "adm-zip": "^0.5.12",
+    "archiver": "^7.0.1",
     "axios": "^1.6.8",
     "boxicons": "^2.1.4",
     "dayjs": "^1.11.11",
@@ -51,6 +52,8 @@
     "gsap": "^3.12.5",
     "pinia": "^2.1.7",
     "pinia-plugin-persistedstate": "^3.2.1",
+    "primeicons": "^7.0.0",
+    "primevue": "^3.52.0",
     "steam-game-path": "^2.2.3",
     "tree-kill": "^1.2.2",
     "unzipper": "^0.11.6",

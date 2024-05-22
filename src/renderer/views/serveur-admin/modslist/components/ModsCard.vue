@@ -56,7 +56,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['modDeleted'])
+const emit = defineEmits(['modDeleted', 'reloadList'])
 
 const showAddMod = ref(false)
 const showRemoveModal = ref(false)
@@ -143,7 +143,7 @@ async function confirmDeleteAllMods(mod) {
     //TODO gérer les boutons de suppression pour la page online et les mods à supprimer de la liste pour la page modpack
     //listDependanciesToDelete.value[0].isAdded = false
     //listDependanciesToDelete.value[0].id = null
-    //emit('modDeleted', listDependanciesToDelete.value[0])
+    emit('reloadList')
     showRemoveModal.value = false
   } else {
     toast.error('Une erreur est survenue lors de la suppression du mod ' + listDependanciesToDelete.value[0].name + '. Veuillez réessayer')

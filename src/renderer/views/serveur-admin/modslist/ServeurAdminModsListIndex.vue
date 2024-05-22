@@ -8,22 +8,17 @@
     <ServeurAdminModsListModspack v-else="listType === 'Modspack'" />
   </div>
 </template>
-<script setup lang="ts">
+<script setup>
 import { onMounted, ref } from 'vue'
+import { toast } from 'vue3-toastify'
+import {router} from '@/router'
+
+import { useAuthStore } from '@/stores/authStore.js'
+
 import ServeurAdminModsListOnline from './ServeurAdminModsListOnline.vue';
 import ServeurAdminModsListModspack from './ServeurAdminModsListModspack.vue';
-// @ts-ignore
-import { gsap } from 'gsap'
-import 'boxicons/css/boxicons.min.css';
-import { toast } from 'vue3-toastify'
-// @ts-ignore
-import { useAuthStore } from '@/stores/authStore.js'
-const authStore = useAuthStore()
-// @ts-ignore
-import {router} from '@/router'
-// @ts-ignore
-import { getToVApi } from '@/services/axiosService';
 
+const authStore = useAuthStore()
 const listType = ref('Modspack')
 
 onMounted(() => {

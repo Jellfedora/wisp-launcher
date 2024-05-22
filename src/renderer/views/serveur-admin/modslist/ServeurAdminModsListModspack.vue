@@ -1,92 +1,53 @@
 <template>
   <div class="modspack-modslist">
-    <SidebarAction />
+    <SidebarAction :nbr-mods="totalItems"/>
     <TransitionGroup 
       tag="ul"
+      class="modspack-modslist__mods"
       v-if="!loading"
       @before-enter="onBeforeEnter"
       @enter="onEnter"
       @leave="onLeave"
       
       >
-      <li v-if="modslistToDisplay.length > 0" class="modspack-modslist__mods" v-for="mod in modslistToDisplay" :key="mod.id">
-        <ModsCard :mod="mod" @modDeleted="deleteModToList" />
+      <li v-if="modslistToDisplay.length > 0" class="modspack-modslist__mods__mod" v-for="mod in modslistToDisplay" :key="mod.id">
+        <ModsCard :mod="mod" @modDeleted="deleteModToList" @reloadList="getGuildModsList()" />
       </li>
     </TransitionGroup>
     <div v-else class="modspack-modslist__spinner-container">
       <SpinnerLoader size="large" />
     </div>
     <div class="modspack-modslist__search">
-      <button 
-        class="modspack-modslist__search__btn btn-primary"
-        @click="createModpack"
-        v-if="modslistToDisplay.length"
-      >
-        Créer Modpack <small>({{Math.round(totalItems)}})</small>
-      </button>
-      <button 
-        class="modspack-modslist__search__btn btn-primary"
-        @click="LaunchGameWithMods()"
-        v-if="modslistToDisplay.length"
-      >
-        <span v-if="!modpackStore.getSpinnerLoadingLaunchAdminMods()">Lancer le jeu</span>
-        <SpinnerLoader v-else size="small" />
-        
-      </button>
-      <button 
-        class="modspack-modslist__search__btn btn-primary"
-        @click="openTestConfFolder()"
-      >
-        <span>Modifier les fichiers de configurations des mods</span>
-        
-      </button>
-      <div style="width: 35em;">
-        <vue-awesome-paginate
-          v-if="totalItemsToDisplay >= 1"
-          :total-items="totalItemsToDisplay"
-          :items-per-page="12"
-          :max-pages-shown="4"
-          v-model="currentPage"
-          :on-click="onClickHandler"
-        />
-      </div>
+      <h2>Mods : {{Math.round(totalItems)}}</h2>
+      <vue-awesome-paginate
+        v-if="totalItemsToDisplay >= 1"
+        :total-items="totalItemsToDisplay"
+        :items-per-page="12"
+        :max-pages-shown="4"
+        v-model="currentPage"
+        :on-click="onClickHandler"
+      />
       <input class="modspack-modslist__search__input" type="text" name="search-modname" v-model="searchedModsValue" @change="searchModsByName()" placeholder="Rechercher par titre ou auteur" @input="searchModsByName" @focus="isFocused" @blur="isNotFocused" />
       <button class="modspack-modslist__search__clear" v-if="searchedModsValue !== ''" @click="clearInput()"><i class="bx bx-x bx-sm " /></button>
     </div>
-    <Modal :show="showModpackModal">
-      <h3>Création de l'archive de votre Modpack en cours</h3>
-      <SpinnerLoader size="normal" />
-      <small>Veuillez ne pas quitter la page pendant la création de l'archive</small>
-      <br />
-      <small>La création de l'archive peut prendre quelques minutes selon le nombre et la taille des mods</small>
-    </Modal>
+    
   </div>
 </template>
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 import { gsap } from 'gsap'
-import 'boxicons/css/boxicons.min.css';
-import Modal from '@/components/Modal.vue'
-import { toast } from 'vue3-toastify'
-import ModsCard from './ModsCard.vue';
-import SpinnerLoader from '@/components/SpinnerLoader.vue'
-import { useAuthStore } from '@/stores/authStore.js'
-import SidebarAction from './ServeurAdminSidebarAction.vue'
-import {router} from '@/router'
 import { getToVApi } from '@/services/axiosService';
-import { useModpackStore } from '@/stores/modpackStore.js'
-import { ipcRenderer } from 'electron'
-const modpackStore = useModpackStore()
+import ModsCard from './components/ModsCard.vue';
+import SpinnerLoader from '@/components/SpinnerLoader.vue'
+import SidebarAction from './components/SidebarAction.vue'
 
-const modslist = ref<any[]>([]) // Liste des mods du modpack de la guilde
-const modslistToDisplay = ref<any[]>([]) // Liste des mods à afficher
+const modslist = ref([]) // Liste des mods du modpack de la guilde
+const modslistToDisplay = ref([]) // Liste des mods à afficher
 const nbrMods = ref(0)
 const currentPage = ref(1);
 const totalItems = ref(0); // Nombre total de mods sur le serveur
 const totalItemsToDisplay = ref(0); // Nombre total de mods à afficher
 const loading = ref(true);
-const showModpackModal = ref(false);
-
 
 // Animation sur le nombre de mods
 watch(modslist, (newValue, oldValue) => {
@@ -129,49 +90,6 @@ function deleteModToList(mod: any) {
   modslist.value = modslist.value.filter(mods => mods.id !== mod.id)
   modslistToDisplay.value = modslistToDisplay.value.filter(mods => mods.id !== mod.id)
   totalItems.value = totalItems.value - 1;
-}
-
-// Créer un modpack
-async function createModpack() {
-  showModpackModal.value = true
-  const createModpack = await getToVApi ('v_guilds_modpack/create');
-  if (createModpack && createModpack.success) {
-    showModpackModal.value = false
-    toast.success('Modpack créé avec succès')
-    modpackStore.checkLocalAndRemoteModpack()
-  } else {
-    showModpackModal.value = false
-    if(createModpack && createModpack.data && createModpack.data.message) {
-      toast.error(createModpack.data.message)
-    } else {
-      toast.error('Une erreur est survenue lors de la création du modpack')
-      // TODO envoyer un message d'erreur au discord V Launcher
-    }
-  }
-}
-
-// Lancer le jeu avec les mods
-async function LaunchGameWithMods() {
-  // On récupére tous les mods de la guilde
-  const mods = await getToVApi ('v_guilds_modslist/all_mods')
-  if (mods && mods.success && mods.data.data && mods.data.data.length > 0) {
-    modpackStore.launchGameWithGuildMods(mods.data.data)
-  } else {
-    toast.error('Une erreur est survenue lors de la récupération des mods de la guilde')
-    // TODO envoyer un message d'erreur au discord V Launcher
-  }
-}
-
-// Ouvrir le dossier de configuration des mods
-function openTestConfFolder() {
-  ipcRenderer.send('open-conf-folder', useAuthStore().getGuildId() + '-test')
-    ipcRenderer.once('open-conf-folder', (_event, result) => {
-      if (result && result.success) {
-        toast.success("Votre dossier de configuration a bien été ouvert")
-      } else {
-        toast.warn("Votre dossier de configuration n'a pas encore été créé, veuillez d'abord lancer le jeu")
-      }
-    });
 }
 
 function onClickHandler(page: number) {
@@ -303,12 +221,13 @@ const isNotFocused = () => {
       color: white;
     }
   }
-  & ul {
+  &__mods {
     width: 100%;
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    & li {
+    margin-left: 8em;
+    justify-content: flex-start;
+    &__mod {
       list-style: none;
     }
   }

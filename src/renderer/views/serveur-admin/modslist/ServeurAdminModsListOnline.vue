@@ -46,23 +46,15 @@
 </template>
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-// @ts-ignore
 import { gsap } from 'gsap'
-import 'boxicons/css/boxicons.min.css';
-
-import ModsCard from './ModsCard.vue';
-// @ts-ignore
-import SpinnerLoader from '@/components/SpinnerLoader.vue'
-// @ts-ignore
-import { useAuthStore } from '@/stores/authStore.js'
-// @ts-ignore
-import {router} from '@/router'
-// @ts-ignore
 import { getToVApi } from '@/services/axiosService'
 import { toast } from 'vue3-toastify'
 
-const modslist = ref<any[]>([])
-const modslistToDisplay = ref<any[]>([])
+import ModsCard from './components/ModsCard.vue';
+import SpinnerLoader from '@/components/SpinnerLoader.vue'
+
+const modslist = ref([])
+const modslistToDisplay = ref([])
 const nbrMods = ref(0)
 const currentPage = ref(1);
 const totalItems = ref(0); // Nombre total de mods sur le serveur
@@ -108,7 +100,7 @@ async function getOnlineModsList() {
 }
 
 // Changement de page
-function onClickHandler(page: number) {
+function onClickHandler(page) {
   currentPage.value = page;
   getOnlineModsList();
 }
@@ -137,12 +129,12 @@ const isNotFocused = () => {
 }
 
 // Transitions
-function onBeforeEnter(el: any) {
+function onBeforeEnter(el) {
   el.style.opacity = 0
   el.style.height = 0
 }
 
-function onEnter(el: any, done: any) {
+function onEnter(el, done) {
   gsap.to(el, {
     opacity: 1,
     delay: el.dataset.index * 0.15,
@@ -150,7 +142,7 @@ function onEnter(el: any, done: any) {
   })
 }
 
-function onLeave(el: any, done: any) {
+function onLeave(el, done) {
   gsap.to(el, {
     opacity: 0,
     height: 0,
