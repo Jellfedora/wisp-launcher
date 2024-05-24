@@ -4,7 +4,7 @@
   "version": "0.5.1",
   "description": "Wisp launcher for Valheim mods",
   "main": ".vite/build/main.js",
-  "icon": "public/favicon.ico",
+  "icon": "public/icon.ico",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
