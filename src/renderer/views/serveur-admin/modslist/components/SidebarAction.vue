@@ -30,7 +30,7 @@
         <SpinnerLoader v-else size="small" />
       </button>
       <template #popper>
-        Lancer Valheim
+        Lancer Valheim pour générer les fichiers de configuration
       </template>
     </VTooltip>
 

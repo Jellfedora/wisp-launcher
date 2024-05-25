@@ -60,9 +60,18 @@
         v-if="appStore.getSteamFolderPath() && modpackStore.getCurrentVersion() === modpackStore.getNewVersion() && modpackStore.getCurrentVersion() !==''"
         type="button"
         class="start-game-cursor"
-        @click="startGame"
+        @click="startGame('player')"
       >
-        Lancer Valheim
+        Jouer
+      </button>
+      <!-- Dossier du jeu renseigné et modpack à jour -->
+      <button 
+        v-if="appStore.getSteamFolderPath() && modpackStore.getCurrentVersion() === modpackStore.getNewVersion() && modpackStore.getCurrentVersion() !=='' && authStore.getIsAdmin()"
+        type="button"
+        class="start-game-cursor"
+        @click="startGame('admin')"
+      >
+        Jouer (admin)
       </button>
       <!-- Si modérateur ou administrateur du serveur -->
       <button @click="router.push('/serveur-admin/index')" :title="'Voir ' + selectedGuild.guild_name" v-if="authStore.getIsAdmin() || authStore.getIsModerator()">
@@ -99,12 +108,13 @@ const selectedGuild = computed(() => {
   return authStore.getSelectedDiscordGuild()
 })
 
-const startGame = () => {
+const startGame = (role) => {
+  console.log(role)
   let audio;
   audio = new Audio(Sword);
   audio.volume = 0.5;
   audio.play();
-  ipcRenderer.send('start-steam-game', appStore.getSteamFolderPath(), authStore.getSelectedDiscordGuild().guild_id);
+  ipcRenderer.send('start-steam-game', appStore.getSteamFolderPath(), authStore.getSelectedDiscordGuild().guild_id, role);
 
   ipcRenderer.once('start-steam-game', (_event, result) => {
     if (result) {

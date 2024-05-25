@@ -58,7 +58,7 @@ export const useModpackStore = defineStore('modpack', {
       // On récupère la version du modpack de la guilde sur le serveur
       const { getToVApi } = await import('@/services/axiosService')
       const remoteGuildModspackVersion = await getToVApi('v_guilds_modpack/latest_version')
-      console.log(remoteGuildModspackVersion)
+
       if (remoteGuildModspackVersion && remoteGuildModspackVersion.success && remoteGuildModspackVersion.data) {
         this.remoteGuildModpackVersion = remoteGuildModspackVersion.data.data.version
         // On stocke les mods de la nouvelle version si il y en a
@@ -120,7 +120,6 @@ export const useModpackStore = defineStore('modpack', {
 
       // On récupère les mods de l'administrateur
       const adminMods = []
-      console.log(this.newVersionAdminMods)
       this.newVersionAdminMods.forEach(mod => {
         adminMods.push({ name: mod.name, full_name: mod.full_name, version: mod.version_number })
       })

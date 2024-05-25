@@ -36,7 +36,8 @@ export function updateModsPack () {
         path.join(profileFolderPath, 'start_server_bepinex.sh'),
         path.join(profileFolderPath, 'winhttp.dll'),
         path.join(profileFolderPath, 'wisp-launcher-modpack.json'),
-        path.join(profileFolderPath, 'wisp-launcher-modpack-admin.json')
+        path.join(profileFolderPath, 'wisp-launcher-modpack-admin.json'),
+        path.join(profileFolderPath, 'mods-admin'),
       ]
 
       // Suppression des fichiers et dossiers de manière asynchrone
