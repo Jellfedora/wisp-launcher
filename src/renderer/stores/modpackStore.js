@@ -12,6 +12,7 @@ export const useModpackStore = defineStore('modpack', {
     localGuildModpackVersion: '', // Version du modpack actuelle
     remoteGuildModpackVersion: '', // Version du modpack la plus récente sur le serveur
     newVersionContentMods: [], // Mods du modpack le plus récent
+    newVersionAdminMods: [], // Mods de l'administrateur de la guilde
     bepinexFolderExist: false, // Indique si le dossier bepinex existe
 
     // Variables de chargement
@@ -57,11 +58,17 @@ export const useModpackStore = defineStore('modpack', {
       // On récupère la version du modpack de la guilde sur le serveur
       const { getToVApi } = await import('@/services/axiosService')
       const remoteGuildModspackVersion = await getToVApi('v_guilds_modpack/latest_version')
+      console.log(remoteGuildModspackVersion)
       if (remoteGuildModspackVersion && remoteGuildModspackVersion.success && remoteGuildModspackVersion.data) {
         this.remoteGuildModpackVersion = remoteGuildModspackVersion.data.data.version
         // On stocke les mods de la nouvelle version si il y en a
         if (remoteGuildModspackVersion.data.data.mods) {
           this.newVersionContentMods = remoteGuildModspackVersion.data.data.mods
+          if (remoteGuildModspackVersion.data.admin) {
+            this.newVersionAdminMods = remoteGuildModspackVersion.data.admin.mods
+          } else {
+            this.newVersionAdminMods = []
+          }
         } else {
           this.newVersionContentMods = []
         }
@@ -99,7 +106,8 @@ export const useModpackStore = defineStore('modpack', {
       this.spinnerLoadingDownloadVersion = true
       const authStore = useAuthStore()
       const userToken = await authStore.getUserToken()
-      // On récupére les mods à télécharger qui sont dans un proxy
+
+      // On récupére les mods joueur à télécharger qui sont dans un proxy
       const mods = []
       this.newVersionContentMods.forEach(mod => {
         mods.push({ name: mod.name, full_name: mod.full_name, version: mod.version_number })
@@ -109,7 +117,21 @@ export const useModpackStore = defineStore('modpack', {
         version: this.remoteGuildModpackVersion,
         guild_id: await authStore.getGuildId()
       }
-      ipcRenderer.send('update-version', userToken, jsonFile)
+
+      // On récupère les mods de l'administrateur
+      const adminMods = []
+      console.log(this.newVersionAdminMods)
+      this.newVersionAdminMods.forEach(mod => {
+        adminMods.push({ name: mod.name, full_name: mod.full_name, version: mod.version_number })
+      })
+      const jsonFileAdmin = {
+        mods: adminMods,
+        version: this.remoteGuildModpackVersion,
+        guild_id: await authStore.getGuildId()
+      }
+
+      // On passe ces informations à l'ipcMain pour qu'il télécharge les mods
+      ipcRenderer.send('update-version', userToken, jsonFile, jsonFileAdmin)
 
       ipcRenderer.on('update-version-progress', (_event, result) => {
         this.progressDownloadPercent = result.message

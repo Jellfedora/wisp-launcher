@@ -11,7 +11,7 @@ const log = require('electron-log')
  * @param {string} valheimFolderPath - Chemin du dossier du jeu Valheim
  **/
 export function updateModsPack () {
-  ipcMain.on('update-version', async (event, userBearerToken, jsonFile) => {
+  ipcMain.on('update-version', async (event, userBearerToken, jsonFile, jsonFileAdmin) => {
     try {
       // Si le dossier du profile n'existe pas on le crée
       const profileFolderPath = path.join(app.getPath('userData'), '/profiles', jsonFile.guild_id)
@@ -36,7 +36,7 @@ export function updateModsPack () {
         path.join(profileFolderPath, 'start_server_bepinex.sh'),
         path.join(profileFolderPath, 'winhttp.dll'),
         path.join(profileFolderPath, 'wisp-launcher-modpack.json'),
-        path.join(profileFolderPath, 'version.json'),
+        path.join(profileFolderPath, 'wisp-launcher-modpack-admin.json')
       ]
 
       // Suppression des fichiers et dossiers de manière asynchrone
@@ -60,11 +60,13 @@ export function updateModsPack () {
       // On attend que la suppression des fichiers et dossiers soit terminée
       await deleteFilesAndFolders()
 
-      event.reply('update-version-progress', { message: 'Ecriture de la nouvelle version du modpack' })
       // On écrit le contenu jsonFile dans le fichier wish-launcher-modpack.json
       const newVersionFilePath = path.join(profileFolderPath, 'wisp-launcher-modpack.json')
+      const newVersionAdminFilePath = path.join(profileFolderPath, 'wisp-launcher-modpack-admin.json')
 
       fs.writeFileSync(newVersionFilePath, JSON.stringify(jsonFile, null, 2))
+      fs.writeFileSync(newVersionAdminFilePath, JSON.stringify(jsonFileAdmin, null, 2))
+
       // On va télécharger le fichier zip du bepinex et l'extraire dans le dossier du jeu
       // On recherche dans jsonFile.mods le mod ayant le nom BepInExPack_Valheim
       const bepinexMod = jsonFile.mods.find((mod) => mod.name === 'BepInExPack_Valheim')
@@ -108,7 +110,7 @@ export function updateModsPack () {
         // Téléchargement et extraction des autres mods
         const otherMods = jsonFile.mods.filter((mod) => mod.name !== 'BepInExPack_Valheim')
         for (const mod of otherMods) {
-          const downMod = await downloadAndExtractArchive(mod, userBearerToken, profileFolderPath, event)
+          const downMod = await downloadAndExtractArchive(mod, userBearerToken, path.join(profileFolderPath, 'BepInEx/plugins'), event)
           if (downMod && !downMod.success) {
             log.error('Erreur lors du téléchargement et de l\'extraction de l\'archive ' + mod.name)
             event.reply('update-version-error', { message: 'Une erreur est survenue lors du téléchargement et de l\'extraction de l\'archive ' + mod.name })
@@ -117,6 +119,28 @@ export function updateModsPack () {
 
         }
       }
+
+      // Si le jsonAdmin posséde des mods on crée le dossier admin et on y télécharge les mods
+      if (jsonFileAdmin.mods.length > 0) {
+        console.log('jsonFileAdmin', jsonFileAdmin)
+        const profileFolderPathAdmin = path.join(app.getPath('userData'), '/profiles', jsonFile.guild_id, 'mods-admin')
+
+        if (!fs.existsSync(profileFolderPathAdmin)) {
+          fs.mkdirSync(profileFolderPathAdmin, { recursive: true })
+        }
+
+        // On y télécharge les mods
+        for (const mod of jsonFileAdmin.mods) {
+          const downModAdmin = await downloadAndExtractArchive(mod, userBearerToken, profileFolderPathAdmin, event)
+          if (downModAdmin && !downModAdmin.success) {
+            log.error('Erreur lors du téléchargement et de l\'extraction de l\'archive ' + mod.name)
+            event.reply('update-version-error', { message: 'Une erreur est survenue lors du téléchargement et de l\'extraction de l\'archive ' + mod.name })
+            return
+          }
+        }
+      }
+
+
       // Envoyer un message pour indiquer que le téléchargement est terminé
       event.reply('update-version', { success: true })
 
@@ -244,7 +268,7 @@ export function launchGameWithGuildMods () {
         // Téléchargement et extraction des autres mods
         const otherMods = jsonFile.mods.filter((mod) => mod.name !== 'BepInExPack_Valheim')
         for (const mod of otherMods) {
-          const downMod = await downloadAndExtractArchive(mod, userBearerToken, profileFolderPath, event)
+          const downMod = await downloadAndExtractArchive(mod, userBearerToken, path.join(profileFolderPath, 'BepInEx/plugins'), event)
           if (downMod && !downMod.success) {
             log.error('Erreur lors du téléchargement et de l\'extraction de l\'archive ' + mod.name)
             event.reply('launch-game-with-guild-mods-error', { message: 'Une erreur est survenue lors du téléchargement et de l\'extraction de l\'archive ' + mod.name })
@@ -308,7 +332,7 @@ async function downloadAndExtractArchive (mod, userBearerToken, valheimFolderPat
 
     // Écriture du fichier téléchargé
     event.reply('update-version-progress', { message: `Téléchargement de l'archive ${mod.name}` })
-    const tempModArchivePath = path.join(valheimFolderPath, 'BepInEx/plugins', `${modFullName}`)
+    const tempModArchivePath = path.join(valheimFolderPath, `${modFullName}`)
     await fs.promises.writeFile(tempModArchivePath, Buffer.from(modArchiveData), 'binary')
 
     // Vérification que le fichier est bien écrit sur le disque
@@ -325,7 +349,7 @@ async function downloadAndExtractArchive (mod, userBearerToken, valheimFolderPat
 
     // Extraction de l'archive du mod dans le dossier BepInEx/plugins/full_name
     event.reply('update-version-progress', { message: `Extraction de l'archive ${mod.name}` })
-    const extractMod = await extractZipArchive(tempModArchivePath, path.join(valheimFolderPath, 'BepInEx/plugins', mod.full_name))
+    const extractMod = await extractZipArchive(tempModArchivePath, path.join(valheimFolderPath, mod.full_name))
 
     if (extractMod.success) {
       // Suppression de l'archive du mod
