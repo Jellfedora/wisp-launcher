@@ -74,24 +74,26 @@ const showModpackModal = ref(false);
 // Note: Attend 1.5s avant de fermer le modal pour éviter clignotement
 async function createModpack() {
   showModpackModal.value = true
-  const createModpack = await getToVApi ('v_guilds_modpack/create');
-  if (createModpack && createModpack.success) {
-    setTimeout(() => {
-      showModpackModal.value = false
-      toast.success('Modpack créé avec succès')
-      useModpackStore().checkLocalAndRemoteModpack()
-    }, 1500);
-  } else {
-    setTimeout(() => {
-      showModpackModal.value = false
-      if(createModpack && createModpack.data && createModpack.data.message) {
-        toast.error(createModpack.data.message)
+  ipcRenderer.send('create-new-modpack', useAuthStore().getGuildId(), useAuthStore().getUserToken())
+  ipcRenderer.once('create-new-modpack', (_event, result) => {
+    if (result && result.success) {
+      setTimeout(() => {
+          showModpackModal.value = false
+          toast.success('Modpack créé avec succès')
+          useModpackStore().checkLocalAndRemoteModpack()
+        }, 1500)
       } else {
-        toast.error('Une erreur est survenue lors de la création du modpack')
-        // TODO envoyer un message d'erreur au discord V Launcher
+        setTimeout(() => {
+          showModpackModal.value = false
+          if(createModpack && createModpack.data && createModpack.data.message) {
+            toast.error(createModpack.data.message)
+          } else {
+            toast.error('Une erreur est survenue lors de la création du modpack')
+            // TODO envoyer un message d'erreur au discord V Launcher
+          }
+        }, 1500);
       }
-    }, 1500);
-  }
+  });  
 }
 
 // Lancer le jeu avec les mods

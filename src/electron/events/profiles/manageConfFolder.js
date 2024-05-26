@@ -4,6 +4,8 @@ import path from 'path'
 import log from 'electron-log'
 import archiver from 'archiver'
 import unzipper from 'unzipper'
+import axios from 'axios'
+const FormData = require('form-data')
 
 // Fonction récursive pour récupérer l'arborescence des fichiers et dossiers
 function readDirectory (directoryPath, parentKey = '') {
@@ -152,6 +154,42 @@ export function getProfileConfArbo () {
       event.reply('create-conf-zip', { success: false, message: error.message })
     }
   })
+
+  // Un administrateur crée un nouveau modpack
+  ipcMain.on('create-new-modpack', async (event, guildId, userToken) => {
+    try {
+      const zipFilePathAdmin = path.join(app.getPath('userData'), '/profiles', guildId + '-admin', `${guildId}-admins-config.zip`)
+      const zipFilePathPlayers = path.join(app.getPath('userData'), '/profiles', guildId + '-admin', `${guildId}-players-config.zip`)
+
+      // Si les archives existent on les envoie
+      const zipAdmin = fs.existsSync(zipFilePathAdmin) ? zipFilePathAdmin : null
+      const zipPlayers = fs.existsSync(zipFilePathPlayers) ? zipFilePathPlayers : null
+
+      // Création du form-data
+      const formData = new FormData()
+      if (zipAdmin) {
+        formData.append('conf-admin', fs.createReadStream(zipFilePathAdmin))
+      }
+      if (zipPlayers) {
+        formData.append('conf-players', fs.createReadStream(zipFilePathPlayers))
+      }
+
+      // Envoi des archives et autres données
+      const response = await axios.post(import.meta.env.VITE_API_URL + 'v_guilds_modpack/create', formData, {
+        headers: {
+          ...formData.getHeaders(),
+          'Authorization': `Bearer ${userToken}`
+        }
+      })
+
+      event.reply('create-new-modpack', { success: true, data: response.data })
+    } catch (error) {
+      log.error(error)
+      event.reply('create-new-modpack', { success: false, message: error.message })
+    }
+  })
+
+
 }
 
 // Fonction pour obtenir la liste des fichiers dans l'archive
