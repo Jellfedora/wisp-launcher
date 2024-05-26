@@ -98,6 +98,7 @@ import { useAppStore } from '@/stores/appStore.js'
 import { useModpackStore } from '@/stores/modpackStore.js'
 // @ts-ignore
 import { gsap } from 'gsap'
+import { toast } from 'vue3-toastify'
 
 const modpackStore = useModpackStore()
 const appStore = useAppStore()
@@ -110,7 +111,6 @@ const selectedGuild = computed(() => {
 })
 
 const startGame = (role) => {
-  console.log(role)
   let audio;
   audio = new Audio(Sword);
   audio.volume = 0.5;
@@ -118,10 +118,13 @@ const startGame = (role) => {
   ipcRenderer.send('start-steam-game', appStore.getSteamFolderPath(), authStore.getSelectedDiscordGuild().guild_id, role);
 
   ipcRenderer.once('start-steam-game', (_event, result) => {
-    if (result) {
-      console.log('Start steam')
-    } 
-  });
+    if (result.success) {
+      toast.success('Jeu lancé avec succès')
+    } else {
+      console.error('Erreur lors du lancement du jeu: ', result.message)
+      toast.error("Une erreur est arrivée lors du lancement du jeu, veuillez réessayer ou contacter le support")
+    }
+  })
 }
 
 const ImportUpdate = () => {

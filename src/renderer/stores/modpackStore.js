@@ -169,6 +169,14 @@ export const useModpackStore = defineStore('modpack', {
           this.localGuildModpackVersion = this.remoteGuildModpackVersion
           toast.success("Téléchargement des mods terminé, le jeu va se lancer")
           ipcRenderer.send('start-steam-game', steamFolderPath, guildIdWithTest)
+          ipcRenderer.once('start-steam-game', (_event, result) => {
+            if (result.success) {
+              toast.success('Jeu lancé avec succès')
+            } else {
+              console.error('Erreur lors du lancement du jeu: ', result.message)
+              toast.error("Une erreur est arrivée lors du lancement du jeu, veuillez réessayer ou contacter le support")
+            }
+          })
         } else {
           console.error('Erreur lors de la récupération de l\'archive: ', result.message)
           toast.error("Une erreur est arrivée lors de la récupération du modpack, veuillez reesayez de mettre à jour")

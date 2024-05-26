@@ -38,8 +38,8 @@ export function updateModsPack () {
         path.join(profileFolderPath, 'wisp-launcher-modpack.json'),
         path.join(profileFolderPath, 'wisp-launcher-modpack-admin.json'),
         path.join(profileFolderPath, 'mods-admin'),
-        path.join(profileFolderPath, jsonFile.guild_id + '-players-config.zip'),
-        path.join(profileFolderPath, jsonFile.guild_id + '-admin-config.zip'),
+        path.join(profileFolderPath, 'players-config.zip'),
+        path.join(profileFolderPath, 'admin-config.zip'),
       ]
 
       // Suppression des fichiers et dossiers de manière asynchrone
@@ -173,7 +173,7 @@ export function updateModsPack () {
 
       // Players
       if (getConfsArchivePlayers.data) {
-        const tempConfsArchivePlayersPath = path.join(profileFolderPath, jsonFile.guild_id + '-players-config.zip')
+        const tempConfsArchivePlayersPath = path.join(profileFolderPath, 'players-config.zip')
         await fs.promises.writeFile(tempConfsArchivePlayersPath, Buffer.from(getConfsArchivePlayers.data), 'binary')
       }
 
@@ -188,7 +188,7 @@ export function updateModsPack () {
       })
 
       if (getConfsArchiveAdmin.data) {
-        const tempConfsArchiveAdminPath = path.join(profileFolderPath, jsonFile.guild_id + '-admin-config.zip')
+        const tempConfsArchiveAdminPath = path.join(profileFolderPath, 'admin-config.zip')
         await fs.promises.writeFile(tempConfsArchiveAdminPath, Buffer.from(getConfsArchiveAdmin.data), 'binary')
       }
 
