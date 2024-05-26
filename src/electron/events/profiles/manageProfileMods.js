@@ -108,10 +108,16 @@ export function updateModsPack () {
         // On supprime juste le dossier wish-download-temp et le dossier BepInExPack_Valheim
         fs.rmdirSync(bepinexPackValheimPath, { recursive: true })
 
+        // On crée le dossier des patchers
+        const patchersFolderPath = path.join(profileFolderPath, 'BepInEx/patchers')
+        if (!fs.existsSync(patchersFolderPath)) {
+          fs.mkdirSync(patchersFolderPath, { recursive: true })
+        }
+
         // Téléchargement et extraction des autres mods
         const otherMods = jsonFile.mods.filter((mod) => mod.name !== 'BepInExPack_Valheim')
         for (const mod of otherMods) {
-          const downMod = await downloadAndExtractArchive(mod, userBearerToken, path.join(profileFolderPath, 'BepInEx/plugins'), event)
+          const downMod = await downloadAndExtractArchive(mod, userBearerToken, path.join(profileFolderPath, 'BepInEx/plugins'), patchersFolderPath, event)
           if (downMod && !downMod.success) {
             log.error('Erreur lors du téléchargement et de l\'extraction de l\'archive ' + mod.name)
             event.reply('update-version-error', { message: 'Une erreur est survenue lors du téléchargement et de l\'extraction de l\'archive ' + mod.name })
@@ -130,9 +136,15 @@ export function updateModsPack () {
           fs.mkdirSync(profileFolderPathAdmin, { recursive: true })
         }
 
+        // On crée le dossier des patchers
+        const patchersFolderPath = path.join(profileFolderPathAdmin, 'BepInEx/patchers')
+        if (!fs.existsSync(patchersFolderPath)) {
+          fs.mkdirSync(patchersFolderPath, { recursive: true })
+        }
+
         // On y télécharge les mods
         for (const mod of jsonFileAdmin.mods) {
-          const downModAdmin = await downloadAndExtractArchive(mod, userBearerToken, profileFolderPathAdmin, event)
+          const downModAdmin = await downloadAndExtractArchive(mod, userBearerToken, profileFolderPathAdmin, patchersFolderPath, event)
           if (downModAdmin && !downModAdmin.success) {
             log.error('Erreur lors du téléchargement et de l\'extraction de l\'archive ' + mod.name)
             event.reply('update-version-error', { message: 'Une erreur est survenue lors du téléchargement et de l\'extraction de l\'archive ' + mod.name })
@@ -265,11 +277,17 @@ export function launchGameWithGuildMods () {
         // On supprime juste le dossier wish-download-temp et le dossier BepInExPack_Valheim
         fs.rmdirSync(bepinexPackValheimPath, { recursive: true })
 
+        // On crée le dossier des patchers
+        const patchersFolderPath = path.join(profileFolderPath, 'BepInEx/patchers')
+        if (!fs.existsSync(patchersFolderPath)) {
+          fs.mkdirSync(patchersFolderPath, { recursive: true })
+        }
+
         // TODO On ne télécharge que si le mod est manquant
         // Téléchargement et extraction des autres mods
         const otherMods = jsonFile.mods.filter((mod) => mod.name !== 'BepInExPack_Valheim')
         for (const mod of otherMods) {
-          const downMod = await downloadAndExtractArchive(mod, userBearerToken, path.join(profileFolderPath, 'BepInEx/plugins'), event)
+          const downMod = await downloadAndExtractArchive(mod, userBearerToken, path.join(profileFolderPath, 'BepInEx/plugins'), patchersFolderPath, event)
           if (downMod && !downMod.success) {
             log.error('Erreur lors du téléchargement et de l\'extraction de l\'archive ' + mod.name)
             event.reply('launch-game-with-guild-mods-error', { message: 'Une erreur est survenue lors du téléchargement et de l\'extraction de l\'archive ' + mod.name })
@@ -303,7 +321,7 @@ export function launchGameWithGuildMods () {
 }
 
 
-async function downloadAndExtractArchive (mod, userBearerToken, valheimFolderPath, event) {
+async function downloadAndExtractArchive (mod, userBearerToken, valheimFolderPath, patchersFolderPath, event) {
   try {
     const response = {
       success: true,
@@ -342,6 +360,7 @@ async function downloadAndExtractArchive (mod, userBearerToken, valheimFolderPat
       .catch(() => false)
 
     if (!fileExists) {
+      log.error(`Le fichier ${modFullName} n'a pas pu être écrit sur le disque.`)
       event.reply('update-version-error', { message: `Le fichier ${modFullName} n'a pas pu être écrit sur le disque.` })
       return
     } else {
@@ -353,8 +372,28 @@ async function downloadAndExtractArchive (mod, userBearerToken, valheimFolderPat
     const extractMod = await extractZipArchive(tempModArchivePath, path.join(valheimFolderPath, mod.full_name))
 
     if (extractMod.success) {
+      console.log(`Extraction de l'archive ${mod.name} terminée`)
       // Suppression de l'archive du mod
       fs.unlinkSync(tempModArchivePath)
+
+      // On vérifie si le mod est un patcher (contient un dossier patchers)
+      const patchersPath = path.join(valheimFolderPath, mod.full_name, 'patchers')
+      if (fs.existsSync(patchersPath)) {
+
+        // On crée le dossier du patcher (du nom du mod) dans le dossier patchers
+        const patcherFolderPath = path.join(patchersFolderPath, mod.full_name)
+        if (!fs.existsSync(patcherFolderPath)) {
+          fs.mkdirSync(patcherFolderPath, { recursive: true })
+        }
+
+        // On transfére le mod du dossier plugins vers le dossier patchers
+        const copyPatcher = await copyDirectoryRecursive(path.join(valheimFolderPath, mod.full_name), path.join(patchersFolderPath, mod.full_name))
+        if (copyPatcher.success) {
+          // On supprime le mod du dossier plugins
+          fs.rmdirSync(path.join(valheimFolderPath, mod.full_name), { recursive: true })
+        }
+
+      }
       response.message = `Extraction de l'archive ${mod.name} terminée`
     }
 

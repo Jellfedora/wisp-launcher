@@ -1,6 +1,7 @@
 import fs from 'fs'
 import unzipper from 'unzipper'
 import log from 'electron-log'
+import path from 'path'
 
 /**
  * Extrait les fichiers d'une archive zip
@@ -31,33 +32,40 @@ export async function copyDirectoryRecursive (source, destination) {
     fs.mkdir(destination, { recursive: true }, (error) => {
       if (error) {
         log.error(`Erreur lors de la création du dossier ${destination} :`, error)
-        reject(error)
+        return reject(error)
       }
 
-      fs.readdir(source, { withFileTypes: true }, (error, files) => {
+      fs.readdir(source, { withFileTypes: true }, async (error, files) => {
         if (error) {
           log.error(`Erreur lors de la lecture du dossier ${source} :`, error)
-          reject(error)
+          return reject(error)
         }
 
-        files.forEach((file) => {
-          const sourcePath = `${source}/${file.name}`
-          const destinationPath = `${destination}/${file.name}`
+        try {
+          await Promise.all(files.map(async (file) => {
+            const sourcePath = path.join(source, file.name)
+            const destinationPath = path.join(destination, file.name)
 
-          if (file.isDirectory()) {
-            copyDirectoryRecursive(sourcePath, destinationPath)
-          } else {
-            fs.copyFile(sourcePath, destinationPath, (error) => {
-              if (error) {
-                log.error(`Erreur lors de la copie du fichier ${sourcePath} vers ${destinationPath} :`, error)
-                reject(error)
-              }
-            })
-          }
-        })
+            if (file.isDirectory()) {
+              await copyDirectoryRecursive(sourcePath, destinationPath)
+            } else {
+              return new Promise((resolve, reject) => {
+                fs.copyFile(sourcePath, destinationPath, (error) => {
+                  if (error) {
+                    log.error(`Erreur lors de la copie du fichier ${sourcePath} vers ${destinationPath} :`, error)
+                    return reject(error)
+                  }
+                  resolve()
+                })
+              })
+            }
+          }))
+
+          resolve({ success: true })
+        } catch (error) {
+          reject(error)
+        }
       })
-
-      resolve({ success: true })
     })
   })
 }

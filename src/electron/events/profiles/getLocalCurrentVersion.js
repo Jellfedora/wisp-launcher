@@ -42,8 +42,8 @@ export function compareLocalAndRemoteModpack () {
             const mods = jsonFile.mods
             let modsNotInstalled = []
             mods.forEach((mod) => {
-              // On vérifie que tous les dossiers des mods sont bien présents sauf BepInExPack_Valheim
-              if (mod.name !== 'BepInExPack_Valheim' && !fs.existsSync(path.join(pluginsPath, mod.full_name))) {
+              // On vérifie que tous les dossiers des mods ou patchers sont bien présents sauf BepInExPack_Valheim
+              if (mod.name !== 'BepInExPack_Valheim' && !fs.existsSync(path.join(pluginsPath, mod.full_name)) && !fs.existsSync(path.join(bepinexPath, 'patchers', mod.full_name))) {
                 modsNotInstalled.push(mod.name)
               }
             })
