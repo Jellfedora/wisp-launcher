@@ -167,7 +167,6 @@ export const useModpackStore = defineStore('modpack', {
       ipcRenderer.once('launch-game-with-guild-mods', (_event, result) => {
         if (result.success) {
           this.localGuildModpackVersion = this.remoteGuildModpackVersion
-          toast.success("Téléchargement des mods terminé, le jeu va se lancer")
           ipcRenderer.send('start-steam-game', steamFolderPath, guildIdWithTest)
           ipcRenderer.once('start-steam-game', (_event, result) => {
             if (result.success) {
