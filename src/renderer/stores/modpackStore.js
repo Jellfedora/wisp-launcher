@@ -142,7 +142,7 @@ export const useModpackStore = defineStore('modpack', {
           toast.success("Votre modpack est maintenant à jour")
         } else {
           console.error('Erreur lors de la récupération de l\'archive: ', result.message)
-          toast.error("Une erreur est arrivée lors de la récupération du modpack, veuillez reesayez de mettre à jour")
+          toast.error("Une erreur est arrivée lors de la récupération du modpack, veuillez reesayez, si le problème persiste contactez le support")
         }
         this.spinnerLoadingDownloadVersion = false
       })

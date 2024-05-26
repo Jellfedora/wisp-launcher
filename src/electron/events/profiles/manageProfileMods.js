@@ -38,6 +38,8 @@ export function updateModsPack () {
         path.join(profileFolderPath, 'wisp-launcher-modpack.json'),
         path.join(profileFolderPath, 'wisp-launcher-modpack-admin.json'),
         path.join(profileFolderPath, 'mods-admin'),
+        path.join(profileFolderPath, jsonFile.guild_id + '-players-config.zip'),
+        path.join(profileFolderPath, jsonFile.guild_id + '-admin-config.zip'),
       ]
 
       // Suppression des fichiers et dossiers de manière asynchrone
@@ -72,7 +74,8 @@ export function updateModsPack () {
       // On recherche dans jsonFile.mods le mod ayant le nom BepInExPack_Valheim
       const bepinexMod = jsonFile.mods.find((mod) => mod.name === 'BepInExPack_Valheim')
       if (!bepinexMod) {
-        event.reply('update-version-error', { message: 'Le mod BepInExPack_Valheim n\'a pas été trouvé dans la nouvelle version du modpack, veuillez vérifier qu\'il a bien été ajouté.' })
+        log.error('Le mod BepInExPack_Valheim n\'a pas été trouvé dans la nouvelle version du modpack, veuillez vérifier qu\'il a bien été ajouté.')
+        event.reply('update-version', { message: 'Le mod BepInExPack_Valheim n\'a pas été trouvé dans la nouvelle version du modpack, veuillez vérifier qu\'il a bien été ajouté.' })
         return
       }
 
@@ -120,7 +123,7 @@ export function updateModsPack () {
           const downMod = await downloadAndExtractArchive(mod, userBearerToken, path.join(profileFolderPath, 'BepInEx/plugins'), patchersFolderPath, event)
           if (downMod && !downMod.success) {
             log.error('Erreur lors du téléchargement et de l\'extraction de l\'archive ' + mod.name)
-            event.reply('update-version-error', { message: 'Une erreur est survenue lors du téléchargement et de l\'extraction de l\'archive ' + mod.name })
+            event.reply('update-version', { message: 'Une erreur est survenue lors du téléchargement et de l\'extraction de l\'archive ' + mod.name })
             return
           }
 
@@ -147,12 +150,47 @@ export function updateModsPack () {
           const downModAdmin = await downloadAndExtractArchive(mod, userBearerToken, profileFolderPathAdmin, patchersFolderPath, event)
           if (downModAdmin && !downModAdmin.success) {
             log.error('Erreur lors du téléchargement et de l\'extraction de l\'archive ' + mod.name)
-            event.reply('update-version-error', { message: 'Une erreur est survenue lors du téléchargement et de l\'extraction de l\'archive ' + mod.name })
+            event.reply('update-version', { message: 'Une erreur est survenue lors du téléchargement et de l\'extraction de l\'archive ' + mod.name })
             return
           }
         }
       }
 
+      // Téléchargement des fichiers de configuration
+      // Appel à l'api pour récupérer les fichiers de configuration
+      const getConfsArchivePlayers = await axios({
+        method: 'get',
+        url: (import.meta.env.VITE_API_URL + 'v_guilds_modpack/download_config/players'),
+        headers: {
+          'Authorization': `Bearer ${userBearerToken}`
+        },
+        responseType: 'arraybuffer'
+      })
+
+      // Écriture des fichiers de configuration
+      // On place les configs dans le dossier du profile
+      event.reply('update-version-progress', { message: 'Récupération des fichiers de configuration' })
+
+      // Players
+      if (getConfsArchivePlayers.data) {
+        const tempConfsArchivePlayersPath = path.join(profileFolderPath, jsonFile.guild_id + '-players-config.zip')
+        await fs.promises.writeFile(tempConfsArchivePlayersPath, Buffer.from(getConfsArchivePlayers.data), 'binary')
+      }
+
+      // Admin
+      const getConfsArchiveAdmin = await axios({
+        method: 'get',
+        url: (import.meta.env.VITE_API_URL + 'v_guilds_modpack/download_config/admin'), // TODO changer admin pour admins
+        headers: {
+          'Authorization': `Bearer ${userBearerToken}`
+        },
+        responseType: 'arraybuffer'
+      })
+
+      if (getConfsArchiveAdmin.data) {
+        const tempConfsArchiveAdminPath = path.join(profileFolderPath, jsonFile.guild_id + '-admin-config.zip')
+        await fs.promises.writeFile(tempConfsArchiveAdminPath, Buffer.from(getConfsArchiveAdmin.data), 'binary')
+      }
 
       // Envoyer un message pour indiquer que le téléchargement est terminé
       event.reply('update-version', { success: true })
@@ -160,7 +198,7 @@ export function updateModsPack () {
     } catch (error) {
       log.error('Erreur lors de la mise à jour de la version :', error)
       // Envoyer un message à la fenêtre principale pour signaler une erreur
-      event.reply('update-version-error', { message: 'Une erreur est survenue lors de la mise à jour de la version.' })
+      event.reply('update-version', { message: 'Une erreur est survenue lors de la mise à jour de la version.' })
     }
   })
 }
@@ -342,8 +380,8 @@ async function downloadAndExtractArchive (mod, userBearerToken, valheimFolderPat
 
     // Vérification de la réponse d'Axios
     if (!axiosResponse || !axiosResponse.data) {
-      console.error(`Erreur lors du téléchargement de l'archive ${modFullName}.`)
-      event.reply('update-version-error', { message: `Erreur lors du téléchargement de l'archive ${modFullName}.` })
+      log.error(`Erreur lors du téléchargement de l'archive ${modFullName}.`)
+      event.reply('update-version', { message: `Erreur lors du téléchargement de l'archive ${modFullName}.` })
       return
     }
 
@@ -361,7 +399,7 @@ async function downloadAndExtractArchive (mod, userBearerToken, valheimFolderPat
 
     if (!fileExists) {
       log.error(`Le fichier ${modFullName} n'a pas pu être écrit sur le disque.`)
-      event.reply('update-version-error', { message: `Le fichier ${modFullName} n'a pas pu être écrit sur le disque.` })
+      event.reply('update-version', { message: `Le fichier ${modFullName} n'a pas pu être écrit sur le disque.` })
       return
     } else {
       response.message = `Le fichier ${modFullName} a bien été écrit sur le disque.`
@@ -400,7 +438,7 @@ async function downloadAndExtractArchive (mod, userBearerToken, valheimFolderPat
     return response
   } catch (error) {
     log.error('Erreur lors de la mise à jour de la version :', error)
-    event.reply('update-version-error', { message: 'Une erreur est survenue lors de la mise à jour de la version.' })
+    event.reply('update-version', { message: 'Une erreur est survenue lors de la mise à jour de la version.' })
   }
 }
 

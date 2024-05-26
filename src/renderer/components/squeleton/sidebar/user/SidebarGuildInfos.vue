@@ -88,6 +88,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ipcRenderer } from 'electron';
+// @ts-ignore
 import Sword from '@/assets/mp3/Sword.wav';
 // @ts-ignore
 import { useAuthStore } from '@/stores/authStore.js'
