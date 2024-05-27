@@ -4,7 +4,7 @@
   "version": "0.6.0",
   "description": "Wisp launcher for Valheim mods",
   "main": ".vite/build/main.js",
-  "icon": "public/icon.ico",
+  "icon": "favicon.ico",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
@@ -34,7 +34,7 @@
   "keywords": [],
   "author": {
     "name": "Jellfedora",
-    "email": "julienlecointe@live.fr"
+    "email": "wisp.forge@gmail.com"
   },
   "license": "MIT",
   "dependencies": {

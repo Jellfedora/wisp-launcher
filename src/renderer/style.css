@@ -88,12 +88,12 @@ a {
 
 .blue-blink:hover {
   color: #25d3e4;
-  cursor: url('../public/cursors/cursor_outline_white.png'), auto;
+  cursor: url('./assets/cursors/cursor.cursor_outline_white'), auto;
   animation: filterAnimation 2s alternate;
 }
 
 .start-game-cursor:hover {
-  cursor: url('../public/cursors/cursor.cur'), auto;
+  cursor: url('./assets/cursors/cursor.png'), auto;
 }
 
 button {

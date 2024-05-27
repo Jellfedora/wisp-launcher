@@ -4,27 +4,28 @@ require('dotenv').config()
 
 module.exports = {
   packagerConfig: {
-    asar: true
+    asar: true,
+    icon: './favicon.ico'
   },
   rebuildConfig: {},
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
       config: {
-        loadingGif: "./public/install-gif.gif",
-        setupIcon: "./public/icon.ico",
+        setupIcon: "./favicon.ico",
+        //iconUrl: './favicon.ico',
+        loadingGif: "./install-gif.gif",
         authors: 'Wisp Forge',
-        description: 'Wisp launcher for Valheim mods'
-        //iconUrl: 'http://example.com/icon.ico'
+        description: 'Wisp launcher for Valheim mods',
       }
     },
     {
       name: '@electron-forge/maker-deb',
       config: {
         options: {
-          //maintainer: 'Wisp Forge',
-          //description: 'Wisp launcher for Valheim mods',
-          //icon: "./public/icon.ico"
+          // maintainer: 'Wisp Forge',
+          // description: 'Wisp launcher for Valheim mods',
+          // icon: "./favicon.ico"
         }
       },
     },

@@ -33,9 +33,9 @@ const createWindow = () => {
   }
 
   // Open the DevTools if the environment is local
-  if (process.env.VITE_ENV === 'local') {
-    mainWindow.webContents.openDevTools()
-  }
+  //if (process.env.VITE_ENV === 'local') {
+  mainWindow.webContents.openDevTools()
+  //}
 
   const appVersion = app.getVersion()
   console.log('Fedora Launcher v' + appVersion + ' - Environnement: ' + process.env.VITE_ENV)
