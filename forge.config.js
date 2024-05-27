@@ -13,7 +13,7 @@ module.exports = {
       name: '@electron-forge/maker-squirrel',
       config: {
         setupIcon: "./favicon.ico",
-        //iconUrl: './favicon.ico',
+        iconUrl: 'https://wisp-forge.hopto.org/launcher-favicon.ico',
         loadingGif: "./install-gif.gif",
         authors: 'Wisp Forge',
         description: 'Wisp launcher for Valheim mods',

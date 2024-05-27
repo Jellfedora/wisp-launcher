@@ -7,13 +7,13 @@ if (require('electron-squirrel-startup')) {
   app.quit()
 }
 
-process.env.DIST = path.join(__dirname, '../dist')
-process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
+// process.env.DIST = path.join(__dirname, '../dist')
+// process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
 
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'), // Icône de l'application
+    // icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'), // Icône de l'application
     width: process.env.VITE_ENV === 'local' ? 1800 : 1500, // Largeur de la fenêtre
     height: process.env.VITE_ENV === 'local' ? 900 : 900, // Hauteur de la fenêtre
     resizable: process.env.VITE_ENV === 'local' ? true : false, // Redimensionnement de la fenêtre
@@ -33,9 +33,9 @@ const createWindow = () => {
   }
 
   // Open the DevTools if the environment is local
-  //if (process.env.VITE_ENV === 'local') {
-  mainWindow.webContents.openDevTools()
-  //}
+  if (process.env.VITE_ENV === 'local') {
+    mainWindow.webContents.openDevTools()
+  }
 
   const appVersion = app.getVersion()
   console.log('Fedora Launcher v' + appVersion + ' - Environnement: ' + process.env.VITE_ENV)
