@@ -112,16 +112,17 @@ async function deleteMod(mod) {
 
 // Ajoute un mod et ses dépendances au modpack
 async function addMod(mod) {
-    showAddMod.value = true
+  showAddMod.value = true
+  console.log(mod.uuid4, mod.version_number)
   const addMod = await postToVApi('v_guilds_modslist/add_mod/' + mod.uuid4 + '/' + mod.version_number)
-    if (addMod.data && addMod.data.success) {
-      mod.isAdded = true
-      toast.success('Le mod ' + mod.name + ' a bien été ajouté au modpack')
-      showAddMod.value = false
-    } else {
-      toast.error(addMod.data.message)
-      showAddMod.value = false
-    }
+  if (addMod?.data && addMod?.data.success) {
+    mod.isAdded = true
+    toast.success('Le mod ' + mod.name + ' a bien été ajouté au modpack')
+    showAddMod.value = false
+  } else {
+    toast.error('Une erreur est survenue lors de l\'ajout du mod ' + mod.name + '. Si le problème persiste, veuillez contacter le support')
+    showAddMod.value = false
+  }
 }
 
 async function confirmDeleteMod(mod) {
