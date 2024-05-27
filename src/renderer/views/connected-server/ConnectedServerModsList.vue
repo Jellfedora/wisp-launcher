@@ -2,12 +2,12 @@
   <div class="modspack-modslist">
     <TransitionGroup 
       tag="ul"
+      class="modspack-modslist__mods"
       v-if="!loading"
       @before-enter="onBeforeEnter"
       @enter="onEnter"
       @leave="onLeave"
-      
-      >
+    >
       <li v-if="modslistToDisplay.length > 0" class="modspack-modslist__mods" v-for="mod in modslistToDisplay" :key="mod.id">
         <ModsCard :mod="mod" />
       </li>
@@ -246,12 +246,12 @@ const isNotFocused = () => {
       color: white;
     }
   }
-  & ul {
-    width: 100%;
+  &__mods {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    & li {
+    margin: 0 auto;
+    justify-content: flex-start;
+    &__mod {
       list-style: none;
     }
   }
