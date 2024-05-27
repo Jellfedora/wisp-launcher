@@ -8,7 +8,7 @@
       @enter="onEnter"
       @leave="onLeave"
     >
-      <li v-if="modslistToDisplay.length > 0" class="modspack-modslist__mods" v-for="mod in modslistToDisplay" :key="mod.id">
+      <li v-if="modslistToDisplay.length > 0" class="modspack-modslist__mods__mod" v-for="mod in modslistToDisplay" :key="mod.id">
         <ModsCard :mod="mod" />
       </li>
     </TransitionGroup>
@@ -47,15 +47,9 @@ import { onMounted, ref, watch } from 'vue'
 import { gsap } from 'gsap'
 import 'boxicons/css/boxicons.min.css';
 // @ts-ignore
-import Modal from '@/components/Modal.vue'
-// @ts-ignore
 import ModsCard from './ModsCard.vue';
 // @ts-ignore
 import SpinnerLoader from '@/components/SpinnerLoader.vue'
-// @ts-ignore
-import { useAuthStore } from '@/stores/authStore.js'
-// @ts-ignore
-import {router} from '@/router'
 // @ts-ignore
 import { getToVApi } from '@/services/axiosService';
 // @ts-ignore
@@ -93,6 +87,8 @@ onMounted(async () => {
 
 async function getGuildModsList() {
   loading.value = true;
+  // TODO Si ce n'est pas une recherche on remet les valeurs par défaut
+  // Si c'est une recherche il faut chercher selon le mot clé
   // On fait un premier appel pour récupérer le nombre total de mods
   const countModsByApi = await getToVApi ('v_guilds_modslist/list_mods/'+ currentPage.value)
     if (countModsByApi && countModsByApi.success && countModsByApi.data.data && countModsByApi.data.data.length === 0) {
@@ -149,6 +145,7 @@ function onLeave(el: any, done: any) {
 const inputIsFocused = ref(false)
 const searchedModsValue = ref('')
 // Formulaire de recherche
+// Todo il faut aller chercher le mod sur l'api et ajouter bouton pour rechercher
 function searchModsByName() {
   console.log(searchedModsValue.value);
   if (searchedModsValue.value) {
