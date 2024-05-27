@@ -33,11 +33,13 @@
     
   </div>
 </template>
-<script setup lang="ts">
+<script setup>
 import { onMounted, ref, watch } from 'vue'
 import { gsap } from 'gsap'
+// @ts-ignore
 import { getToVApi } from '@/services/axiosService';
 import ModsCard from './components/ModsCard.vue';
+// @ts-ignore
 import SpinnerLoader from '@/components/SpinnerLoader.vue'
 import SidebarAction from './components/SidebarAction.vue'
 
@@ -86,24 +88,24 @@ async function getGuildModsList() {
 }
 
 // Supprimer un mod de la liste
-function deleteModToList(mod: any) {
+function deleteModToList(mod) {
   modslist.value = modslist.value.filter(mods => mods.id !== mod.id)
   modslistToDisplay.value = modslistToDisplay.value.filter(mods => mods.id !== mod.id)
   totalItems.value = totalItems.value - 1;
 }
 
-function onClickHandler(page: number) {
+function onClickHandler(page) {
   currentPage.value = page;
   getGuildModsList();
 }
 
 // Transitions
-function onBeforeEnter(el: any) {
+function onBeforeEnter(el) {
   el.style.opacity = 0
   el.style.height = 0
 }
 
-function onEnter(el: any, done: any) {
+function onEnter(el, done) {
   gsap.to(el, {
     height: 'auto',
     opacity: 1,
@@ -112,7 +114,7 @@ function onEnter(el: any, done: any) {
   })
 }
 
-function onLeave(el: any, done: any) {
+function onLeave(el, done) {
   gsap.to(el, {
     opacity: 0,
     height: 0,
