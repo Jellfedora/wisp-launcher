@@ -8,7 +8,7 @@
     <!-- <ul v-for="categories in mod.categories">
       <span>{{ categories }}</span>
     </ul> -->
-    <small>Ajouté le {{dayjs(props.mod.date_created).format('DD/MM/YYYY')}}</small>
+    <small>Ajouté le {{dayjs(props.mod.added_at).format('DD/MM/YYYY')}}</small>
     <!-- <p>{{ mod.description }}</p> -->
     <div class="mod__footer">
       <button style="width:7em;" @click="openLink(props.mod.package_url)" v-if="props.mod.package_url">Détails</button>

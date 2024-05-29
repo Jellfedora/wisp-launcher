@@ -1,21 +1,21 @@
 <template>
-  <div class="modspack-modslist">
+  <div class="guild-modslist">
     <TransitionGroup 
       tag="ul"
-      class="modspack-modslist__mods"
+      class="guild-modslist__mods"
       v-if="!loading"
       @before-enter="onBeforeEnter"
       @enter="onEnter"
       @leave="onLeave"
     >
-      <li v-if="modslistToDisplay.length > 0" class="modspack-modslist__mods__mod" v-for="mod in modslistToDisplay" :key="mod.id">
+      <li v-if="modslistToDisplay.length > 0" class="guild-modslist__mods__mod" v-for="mod in modslistToDisplay" :key="mod.id">
         <ModsCard :mod="mod" />
       </li>
     </TransitionGroup>
-    <div v-else class="modspack-modslist__spinner-container">
+    <div v-else class="guild-modslist__spinner-container">
       <SpinnerLoader size="large" />
     </div>
-    <div class="modspack-modslist__search">
+    <div class="guild-modslist__search">
       <button 
         class="btn-primary" 
         title="Envoyer le fichier de log sur le Discord" 
@@ -36,8 +36,8 @@
           :on-click="onClickHandler"
         />
       </div>
-      <input class="modspack-modslist__search__input" type="text" name="search-modname" v-model="searchedModsValue" @change="searchModsByName()" placeholder="Rechercher par titre ou auteur" @input="searchModsByName" @focus="isFocused" @blur="isNotFocused" />
-      <button class="modspack-modslist__search__clear" v-if="searchedModsValue !== ''" @click="clearInput()"><i class="bx bx-x bx-sm " /></button>
+      <input class="guild-modslist__search__input" type="text" name="search-modname" v-model="searchedModsValue" @change="searchModsByName()" placeholder="Rechercher par titre ou auteur" @input="searchModsByName" @focus="isFocused" @blur="isNotFocused" />
+      <button class="guild-modslist__search__clear" v-if="searchedModsValue !== ''" @click="clearInput()"><i class="bx bx-x bx-sm " /></button>
     </div>
   </div>
 </template>
@@ -177,7 +177,7 @@ const isNotFocused = () => {
 </script>
 
 <style lang="scss">
-.modspack-modslist {
+.guild-modslist {
   width: 100%;
   height: 92%;
   scroll-behavior: smooth;
@@ -247,7 +247,7 @@ const isNotFocused = () => {
     display: flex;
     flex-wrap: wrap;
     margin: 0 auto;
-    justify-content: flex-start;
+    justify-content: center;
     &__mod {
       list-style: none;
     }
