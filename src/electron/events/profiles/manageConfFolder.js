@@ -37,55 +37,58 @@ function readDirectory (directoryPath, parentKey = '') {
 
 // Fonction pour créer le fichier ZIP
 function createZipFromSelection (selection, directoryPath, zipFilePath, playersConfFiles) {
-  const output = fs.createWriteStream(zipFilePath)
-  const archive = archiver('zip', {
-    zlib: { level: 9 }
-  })
+  return new Promise((resolve, reject) => {
+    const output = fs.createWriteStream(zipFilePath)
+    const archive = archiver('zip', {
+      zlib: { level: 9 }
+    })
 
-  output.on('close', () => {
-    console.log(archive.pointer() + ' total bytes')
-    console.log('L\'archive a été créée avec succès : ' + zipFilePath)
-  })
+    output.on('close', () => {
+      console.log(archive.pointer() + ' total bytes')
+      console.log('L\'archive a ete creee avec succes : ' + zipFilePath)
+      resolve()
+    })
 
-  archive.on('error', err => {
-    log.error(err)
-    throw err
-  })
+    archive.on('error', err => {
+      log.error(err)
+      reject(err)
+    })
 
-  archive.pipe(output)
+    archive.pipe(output)
 
-  function addFilesToArchive (node, basePath = '') {
-    const nodeKey = node.key.toString()
-    const nodeSelection = selection[nodeKey]
+    function addFilesToArchive (node, basePath = '') {
+      const nodeKey = node.key.toString()
+      const nodeSelection = selection[nodeKey]
 
-    if (nodeSelection && (nodeSelection.checked || nodeSelection.partialChecked)) {
-      const itemPath = path.join(basePath, node.label)
-      const fullPath = path.join(directoryPath, itemPath)
+      if (nodeSelection && (nodeSelection.checked || nodeSelection.partialChecked)) {
+        const itemPath = path.join(basePath, node.label)
+        const fullPath = path.join(directoryPath, itemPath)
 
-      if (node.icon === 'pi pi-fw pi-folder') {
-        if (nodeSelection.checked) {
-          // Ajoute tout le dossier et ses enfants
-          archive.directory(fullPath, itemPath)
-        } else if (nodeSelection.partialChecked) {
-          // Traite les enfants individuellement
-          if (node.children) {
-            node.children.forEach(childNode => addFilesToArchive(childNode, itemPath))
+        if (node.icon === 'pi pi-fw pi-folder') {
+          if (nodeSelection.checked) {
+            // Ajoute tout le dossier et ses enfants
+            archive.directory(fullPath, itemPath)
+          } else if (nodeSelection.partialChecked) {
+            // Traite les enfants individuellement
+            if (node.children) {
+              node.children.forEach(childNode => addFilesToArchive(childNode, itemPath))
+            }
           }
+        } else if (nodeSelection.checked) {
+          // Ajoute le fichier
+          archive.file(fullPath, { name: itemPath })
         }
-      } else if (nodeSelection.checked) {
-        // Ajoute le fichier
-        archive.file(fullPath, { name: itemPath })
       }
     }
-  }
 
-  if (playersConfFiles && Array.isArray(playersConfFiles)) {
-    playersConfFiles.forEach(node => addFilesToArchive(node))
-  } else {
-    console.error('playersConfFiles is not defined or not an array')
-  }
+    if (playersConfFiles && Array.isArray(playersConfFiles)) {
+      playersConfFiles.forEach(node => addFilesToArchive(node))
+    } else {
+      console.error('playersConfFiles is not defined or not an array')
+    }
 
-  archive.finalize()
+    archive.finalize()
+  })
 }
 
 export function getProfileConfArbo () {
@@ -131,8 +134,7 @@ export function getProfileConfArbo () {
   })
 
   // Création du fichier ZIP de la conf sélectionnée
-  ipcMain.on('create-conf-zip', (event, serializedSelectionAdmins, serializedSelectionPlayers, guildId, type) => {
-
+  ipcMain.on('create-conf-zip', async (event, serializedSelectionAdmins, serializedSelectionPlayers, guildId, type) => {
     const profileFolderPath = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, '/BepInEx/config')
 
     const selectionAdmins = JSON.parse(serializedSelectionAdmins)
@@ -143,8 +145,8 @@ export function getProfileConfArbo () {
 
     try {
       const playersConfFiles = readDirectory(profileFolderPath)
-      createZipFromSelection(selectionAdmins, profileFolderPath, zipFilePathAdmins, playersConfFiles)
-      createZipFromSelection(selectionPlayers, profileFolderPath, zipFilePathPlayers, playersConfFiles)
+      await createZipFromSelection(selectionAdmins, profileFolderPath, zipFilePathAdmins, playersConfFiles)
+      await createZipFromSelection(selectionPlayers, profileFolderPath, zipFilePathPlayers, playersConfFiles)
       event.reply('create-conf-zip', { success: true })
     } catch (error) {
       log.error(error)

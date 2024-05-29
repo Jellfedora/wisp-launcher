@@ -10,7 +10,7 @@
     </VTooltip>
 
     <Modal :show="showArboConf" class="confArbo__modal">
-      <div class="confArbo__modal__content">
+      <div class="confArbo__modal__content" v-if="!saving">
         <h3>Quels dossiers et fichiers de configuration souhaitez-vous inclure dans les modpacks?</h3>
         <div class="confArbo__modal__content__arbo">
           <div class="confArbo__modal__content__arbo__type">
@@ -40,9 +40,15 @@
         </div>
         <div class="confArbo__modal__content__footer">
           <button class="btn-secondary" @click="showNotifSaveModpack()">Fermer</button>
-          <button class="btn-secondary" @click="createZip()">Sauvegarder et fermer</button>
+          <button class="btn-secondary" @click="createZip()">
+            <span>Sauvegarder et fermer</span>
+          </button>
         </div>
         <small>(Les dossiers vides ne sont pas sauvegardés)</small>
+      </div>
+      <div v-else >
+        <SpinnerLoader size="large" />
+        <h3>Sauvegarde des fichiers de configuration en cours</h3>
       </div>
     </Modal>
   </div>
@@ -53,11 +59,14 @@ import { toast } from 'vue3-toastify'
 import Tree from 'primevue/tree';
 import { ipcRenderer } from 'electron';
 import { useAuthStore } from '@/stores/authStore.js'
+// @ts-ignore
+import SpinnerLoader from '@/components/SpinnerLoader.vue'
 
 import Modal from '@/components/Modal.vue'
 
 const showArboConf = ref(false);
 const checked = ref(false);
+const saving = ref(false);
 
 const confFilesPlayers = ref([]);
 const selectedKeyPlayers = ref([])
@@ -112,6 +121,7 @@ function showNotifSaveModpack() {
 
 // Créer le fichier ZIP à partir des éléments sélectionnés
 async function createZip() {
+  saving.value = true;
   const selectionPlayers = JSON.stringify(selectedKeyPlayers.value);
   const selectionAdmins = JSON.stringify(selectedKeyAdmins.value);
   ipcRenderer.send('create-conf-zip', selectionAdmins, selectionPlayers, useAuthStore().getGuildId(), 'admin');
@@ -119,8 +129,10 @@ async function createZip() {
     if (result && result.success) {
       toast.success('Les fichiers de configuration ont été sauvegardés, attention ils ne seront ajoutés dans la nouvelle version du modpack que lorsque vous aurez créé celle-ci');
       showArboConf.value = false;
+      saving.value = false;
     } else {
       toast.error('Erreur lors de la création du fichier ZIP : ' + result.message);
+      saving.value = false;
     }
   });
 }
@@ -161,7 +173,7 @@ async function createZip() {
         margin-top: 1em;
         & button {
           margin: 0 0.5em;
-          width: 15em;
+          width: 17em;
         }
       }
     }
