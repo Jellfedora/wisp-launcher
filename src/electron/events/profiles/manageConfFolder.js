@@ -44,11 +44,11 @@ function createZipFromSelection (selection, directoryPath, zipFilePath, playersC
 
   output.on('close', () => {
     console.log(archive.pointer() + ' total bytes')
-    console.log('archiver has been finalized and the output file descriptor has closed.')
+    console.log('L\'archive a été créée avec succès : ' + zipFilePath)
   })
 
   archive.on('error', err => {
-    console.error(err)
+    log.error(err)
     throw err
   })
 
@@ -99,7 +99,6 @@ export function getProfileConfArbo () {
       try {
         // Vérifie si le fichier ZIP existe
         const zipFilePathAdmin = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `admins-config.zip`)
-        console.log(zipFilePathAdmin)
         const zipFilePathPlayers = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `players-config.zip`)
         let archiveFilesAdmins = []
         let archiveFilesPlayers = []
@@ -123,8 +122,6 @@ export function getProfileConfArbo () {
         markFilesInTree(directoryTreeAdmins, archiveFilesAdmins, '')
         markFilesInTree(directoryTreePlayers, archiveFilesPlayers, '')
 
-        console.log(directoryTreeAdmins)
-        console.log(directoryTreePlayers)
         event.reply('get-conf-arbo', { success: true, dataAdmins: directoryTreeAdmins, dataPlayers: directoryTreePlayers })
       } catch (error) {
         log.error(error)
