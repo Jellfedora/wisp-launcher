@@ -98,9 +98,9 @@ export function getProfileConfArbo () {
     } else {
       try {
         // Vérifie si le fichier ZIP existe
-        const zipFilePathAdmin = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `${guildId}-admins-config.zip`)
+        const zipFilePathAdmin = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `admins-config.zip`)
         console.log(zipFilePathAdmin)
-        const zipFilePathPlayers = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `${guildId}-players-config.zip`)
+        const zipFilePathPlayers = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `players-config.zip`)
         let archiveFilesAdmins = []
         let archiveFilesPlayers = []
 
@@ -139,10 +139,10 @@ export function getProfileConfArbo () {
     const profileFolderPath = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, '/BepInEx/config')
 
     const selectionAdmins = JSON.parse(serializedSelectionAdmins)
-    const zipFilePathAdmins = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `${guildId}-admins-config.zip`)
+    const zipFilePathAdmins = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `admins-config.zip`)
 
     const selectionPlayers = JSON.parse(serializedSelectionPlayers)
-    const zipFilePathPlayers = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `${guildId}-players-config.zip`)
+    const zipFilePathPlayers = path.join(app.getPath('userData'), '/profiles', guildId + '-' + type, `players-config.zip`)
 
     try {
       const playersConfFiles = readDirectory(profileFolderPath)
@@ -158,8 +158,8 @@ export function getProfileConfArbo () {
   // Un administrateur crée un nouveau modpack
   ipcMain.on('create-new-modpack', async (event, guildId, userToken) => {
     try {
-      const zipFilePathAdmin = path.join(app.getPath('userData'), '/profiles', guildId + '-admin', `${guildId}-admins-config.zip`)
-      const zipFilePathPlayers = path.join(app.getPath('userData'), '/profiles', guildId + '-admin', `${guildId}-players-config.zip`)
+      const zipFilePathAdmin = path.join(app.getPath('userData'), '/profiles', guildId + '-admin', `admins-config.zip`)
+      const zipFilePathPlayers = path.join(app.getPath('userData'), '/profiles', guildId + '-admin', `players-config.zip`)
 
       // Si les archives existent on les envoie
       const zipAdmin = fs.existsSync(zipFilePathAdmin) ? zipFilePathAdmin : null

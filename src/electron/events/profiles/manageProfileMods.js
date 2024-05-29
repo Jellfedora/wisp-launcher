@@ -132,7 +132,6 @@ export function updateModsPack () {
 
       // Si le jsonAdmin posséde des mods on crée le dossier admin et on y télécharge les mods
       if (jsonFileAdmin.mods.length > 0) {
-        console.log('jsonFileAdmin', jsonFileAdmin)
         const profileFolderPathAdmin = path.join(app.getPath('userData'), '/profiles', jsonFile.guild_id, 'mods-admin')
 
         if (!fs.existsSync(profileFolderPathAdmin)) {
