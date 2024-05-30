@@ -54,6 +54,7 @@ export const useModpackStore = defineStore('modpack', {
     async checkLocalAndRemoteModpack () {
       // Affiche un spinner dans la section guilde
       this.spinnerLoadingRemoteVersion = true
+      this.localGuildModpackVersion = ''
 
       // On récupère la version du modpack de la guilde sur le serveur
       const { getToVApi } = await import('@/services/axiosService')

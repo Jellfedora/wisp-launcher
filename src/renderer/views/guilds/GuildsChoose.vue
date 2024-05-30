@@ -58,7 +58,7 @@ async function selectGuild(serveur: any) {
   // Note: Le rôle est déjà récupéré et enregistré via axiosService
   if (chooseGuild && chooseGuild.data && chooseGuild.data.success) {
     // On réinteroge la version distante du modpack
-    modpackStore.checkLocalAndRemoteModpack(token.value)
+    modpackStore.checkLocalAndRemoteModpack()
     toast.success("Serveur " + chooseGuild.data.data.guild_name + " sélectionné avec succès")
   } else {
     toast.error("Une erreur est arrivée lors de la sélection du serveur Discord, veuillez réessayer")

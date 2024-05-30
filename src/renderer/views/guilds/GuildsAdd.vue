@@ -24,8 +24,11 @@ import { ref, onMounted } from 'vue'
 import 'vue3-carousel/dist/carousel.css'
 import { toast } from 'vue3-toastify'
 // @ts-ignore
+import { useModpackStore } from '@/stores/modpackStore.js'
+// @ts-ignore
 import { getToVApi, postToVApi } from '@/services/axiosService';
 
+const modpackStore = useModpackStore()
 const serveurs = ref<any[]>([])
 
 onMounted(async() => {
@@ -41,6 +44,7 @@ async function selectGuild(serveur: any) {
   // @ts-ignore
   const addGuild = await postToVApi('v_guilds/add', {guild: serveur})
   if (addGuild && addGuild.data && addGuild.data.success) {
+    modpackStore.checkLocalAndRemoteModpack()
     toast.success(addGuild.data.message)
   } else if (addGuild && addGuild.data) {
     toast.warn(addGuild.data.message)
