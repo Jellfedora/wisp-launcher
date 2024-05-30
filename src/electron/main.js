@@ -1,5 +1,6 @@
 const { app, BrowserWindow } = require('electron')
 const path = require('node:path')
+const { screen } = require('electron')
 require('dotenv').config()
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -11,12 +12,21 @@ if (require('electron-squirrel-startup')) {
 // process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
 
 const createWindow = () => {
+  // Récupérer la taille max de l'écran
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     // icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'), // Icône de l'application
-    width: process.env.VITE_ENV === 'local' ? 1800 : 1500, // Largeur de la fenêtre
-    height: process.env.VITE_ENV === 'local' ? 900 : 900, // Hauteur de la fenêtre
-    resizable: process.env.VITE_ENV === 'local' ? true : false, // Redimensionnement de la fenêtre
+    // width: process.env.VITE_ENV === 'local' ? 1800 : 1500, // Largeur de la fenêtre 
+    // height: process.env.VITE_ENV === 'local' ? 900 : 900, // Hauteur de la fenêtre
+
+    //Largeur de la fenêtre = Largeur max pour tous les écrans
+    width: width,
+    // Hauteur de la fenêtre = Hauteur max pour tous les écrans
+    height: height,
+
+    resizable: true, // Redimensionnement de la fenêtre
     autoHideMenuBar: process.env.VITE_ENV === 'local' ? false : true, // Masquer la barre de menu,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
