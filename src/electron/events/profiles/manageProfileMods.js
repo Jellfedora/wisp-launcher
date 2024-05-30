@@ -138,8 +138,8 @@ export function updateModsPack () {
           fs.mkdirSync(profileFolderPathAdmin, { recursive: true })
         }
 
-        // On crée le dossier des patchers
-        const patchersFolderPath = path.join(profileFolderPathAdmin, 'BepInEx/patchers')
+        // On crée le dossier des patchers. Il sera par la suite déplacé dans le dossier patchers
+        const patchersFolderPath = path.join(profileFolderPathAdmin, 'patchers')
         if (!fs.existsSync(patchersFolderPath)) {
           fs.mkdirSync(patchersFolderPath, { recursive: true })
         }
