@@ -1,7 +1,7 @@
 {
   "name": "wisp-launcher",
   "productName": "Wisp Launcher",
-  "version": "0.6.1",
+  "version": "0.6.3",
   "description": "Wisp launcher for Valheim mods",
   "main": ".vite/build/main.js",
   "icon": "favicon.ico",
