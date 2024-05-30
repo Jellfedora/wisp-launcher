@@ -151,6 +151,7 @@ export const useModpackStore = defineStore('modpack', {
 
     // Met à jour les mods de l'administrateur et lance le jeu avec les mods de la guilde
     async launchGameWithGuildMods (modsList) {
+      console.log('Lancement du jeu en mod Admin')
       this.spinnerLoadingLaunchAdminMods = true
       const authStore = useAuthStore()
       const userToken = await authStore.getUserToken()
@@ -162,12 +163,14 @@ export const useModpackStore = defineStore('modpack', {
       const guildIdWithTest = jsonFile.guild_id + '-admin'
       const appStore = useAppStore()
       const steamFolderPath = await appStore.getSteamFolderPath()
+      const role = 'admin'
+
       ipcRenderer.send('launch-game-with-guild-mods', userToken, jsonFile)
 
       ipcRenderer.once('launch-game-with-guild-mods', (_event, result) => {
         if (result.success) {
           this.localGuildModpackVersion = this.remoteGuildModpackVersion
-          ipcRenderer.send('start-steam-game', steamFolderPath, guildIdWithTest)
+          ipcRenderer.send('start-steam-game', steamFolderPath, guildIdWithTest, role)
           ipcRenderer.once('start-steam-game', (_event, result) => {
             if (result.success) {
               toast.success('Jeu lancé avec succès')
