@@ -11,13 +11,14 @@ export function startGame () {
   // Fonction pour démarrer le jeu avec BepInEx depuis un dossier spécifié
   ipcMain.on('start-steam-game', async (event, pathExeSteamFolder, profile, role) => {
     try {
-      console.log('Demarrage du jeu avec BepInEx depuis le dossier :', pathExeSteamFolder, 'pour le profil :', profile + ', avec le role :', role)
+      log.info('Demarrage du jeu Valheim avec BepInEx depuis le dossier :', pathExeSteamFolder, 'pour le profil :', profile + ', avec le role :', role)
       const steamAppID = '892970' // AppId de Valheim
 
       const profileFolderPath = path.join(app.getPath('userData'), '/profiles', profile)
 
       // Si non admin on supprime le dossier mods-admin de BepInEx/Plugins
       if (role !== 'admin') {
+        log.info('Profil joueur: Suppression du dossier mods-admin dans BepInEx/Plugins')
         const modsAdminFolderPath = path.join(profileFolderPath, 'BepInEx/plugins/mods-admin')
         // On vérifie si le dossier mods-admin existe
         if (fs.existsSync(modsAdminFolderPath)) {
@@ -34,6 +35,7 @@ export function startGame () {
         // On vérifie d'abord si le dossier mods-admin existe
         if (fs.existsSync(path.join(profileFolderPath, 'mods-admin'))) {
           // Si admin on copie le dossier entier de profiles/mods-admin vers BepInEx/Plugins/mods-admin
+          log.info('Profil Admin: Copie du dossier mods-admin dans BepInEx/Plugins/mods-admin')
           const modsAdminFolderPath = path.join(profileFolderPath, 'mods-admin')
           const adminPluginsFolderPath = path.join(profileFolderPath, 'BepInEx/plugins/mods-admin')
           // On crée le dossier mods-admin dans BepInEx/Plugins
