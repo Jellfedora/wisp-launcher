@@ -5,7 +5,7 @@
       <h3>Vous rencontrez un problème ou vous avez des questions sur Wisp Launcher ?</h3>
       <div class="support__item__discord">
         <h4>Contacter nous via Discord dans la catégorie adéquate</h4>
-        <button class="btn-secondary" @click="shell.openExternal('https://discord.gg/QZp4YdVH')">
+        <button class="btn-secondary" @click="shell.openExternal('https://discord.gg/4Wmt9keauW')">
           <img style="width:3em" :src="DiscordIcon" alt="Discord Icon" />
           <p>Nous contacter</p>
         </button>
