@@ -27,7 +27,7 @@ const createWindow = () => {
     height: height,
 
     resizable: true, // Redimensionnement de la fenêtre
-    autoHideMenuBar: process.env.VITE_ENV === 'local' ? false : true, // Masquer la barre de menu,
+    autoHideMenuBar: false, // Masquer la barre de menu process.env.VITE_ENV === 'local' ? false : true
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true, // Activer l'intégration de Node.js dans la fenêtre du rendu,
